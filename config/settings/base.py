@@ -59,11 +59,11 @@ DJANGO_APPS = [
     'django.contrib.admin',
 ]
 THIRD_PARTY_APPS = [
-    
+    'solo',
 ]
 LOCAL_APPS = [
     'pumpwerk.core.apps.CoreConfig',
-    # Your stuff: custom apps go here
+    'pumpwerk.food.apps.FoodConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
