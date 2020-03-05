@@ -7,7 +7,7 @@ from solo.models import SingletonModel
 
 
 class User(AbstractUser):
-    pass
+    calculation_factor = models.DecimalField(max_digits=8, decimal_places=2, default=1)
 
 
 class Setting(SingletonModel):

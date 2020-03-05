@@ -64,6 +64,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     'pumpwerk.core.apps.CoreConfig',
     'pumpwerk.food.apps.FoodConfig',
+    'pumpwerk.slackbot.apps.SlackbotConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -206,6 +207,7 @@ ADMINS = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#managers
 MANAGERS = ADMINS
 
-
+# SLACK
+SLACK_API_TOKEN=env('SLACK_API_TOKEN')
 
 
