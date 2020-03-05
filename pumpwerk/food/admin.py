@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.conf import settings
 
 from pumpwerk.food.models import Bill, UserBill, ExpenseType, Expense
 from pumpwerk.slackbot.bot import send_message_to_channel
@@ -14,7 +15,7 @@ def send_notification(modeladmin, request, queryset):
     for bill in queryset:
         bill.make_bill_calculation()
         if not bill.is_notified:
-            send_message_to_channel('#test', bill)
+            send_message_to_channel(settings.SLACK_FOOD_CHANNEL, bill)
 send_notification.short_description = "Send notification of selected Bills"
 
 
