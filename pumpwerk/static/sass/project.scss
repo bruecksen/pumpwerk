@@ -1,33 +1,15 @@
 // project specific CSS goes here
 
-////////////////////////////////
-		//Variables//
-////////////////////////////////
 
-// Alert colors
+// font-family: 'Open Sans', sans-serif;
+// font-family: 'Lato', sans-serif;
 
-$white: #fff;
-$mint-green: #d6e9c6;
-$black: #000;
-$pink: #f2dede;
-$dark-pink: #eed3d7;
-$red: #b94a48;
 
-////////////////////////////////
-		//Alerts//
-////////////////////////////////
-
-// bootstrap alert CSS, translated to the django-standard levels of
-// debug, info, success, warning, error
-
-.alert-debug {
-  background-color: $white;
-  border-color: $mint-green;
-  color: $black;
+body {
+  font-family: 'Open Sans', sans-serif;
 }
 
-.alert-error {
-  background-color: $pink;
-  border-color: $dark-pink;
-  color: $red;
+.navbar-brand {
+  font-family: 'Lato', sans-serif;
+  text-transform: uppercase;
 }

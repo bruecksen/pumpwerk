@@ -17,6 +17,9 @@
     
     <!-- Latest compiled and minified Bootstrap 4 CSS -->
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+
+    <link href="{% static 'css/fontawesome.min.css' %}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700,900|Open+Sans:400,600,700&display=swap" rel="stylesheet">
     
 
     <!-- Your stuff: Third-party CSS libraries go here -->
@@ -39,7 +42,7 @@
               <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">{{ message }}</div>
           {% endfor %}
       {% endif %}
-
+      {% include 'widgets/header.html' %}
       {% block content %}
         <p>Use this document as a way to quick start any new project.</p>
       {% endblock content %}

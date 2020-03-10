@@ -3,17 +3,19 @@
   "version": "0.1.0",
   "dependencies": {},
   "devDependencies": {
-    "autoprefixer": "^9.4.7",
-    "browser-sync": "^2.14.0",
-    "cssnano": "^4.1.10",
-    "gulp": "^4.0.0",
-    "gulp-imagemin": "^5.0.3",
-    "gulp-plumber": "^1.2.1",
-    "gulp-postcss": "^8.0.0",
-    "gulp-rename": "^1.2.2",
-    "gulp-sass": "^4.0.2",
-    "gulp-uglify-es": "^1.0.4",
-    "pixrem": "^5.0.0"
+    "browser-sync": "*",
+    "del": "*",
+    "gulp": "*",
+    "gulp-autoprefixer": "*",
+    "gulp-cssnano": "*",
+    "gulp-imagemin": "*",
+    "gulp-pixrem": "*",
+    "gulp-plumber": "*",
+    "gulp-rename": "*",
+    "gulp-sass": "*",
+    "gulp-uglify": "*",
+    "gulp-util": "*",
+    "run-sequence": "*"
   },
   "engines": {
     "node": ">=0.8.0"
@@ -22,9 +24,6 @@
     "last 2 versions"
   ],
   "scripts": {
-    
     "dev": "gulp"
-    
-
   }
 }
