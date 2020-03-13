@@ -49,16 +49,16 @@ class Bill(models.Model):
         user_bills = self.userbill_set.all()
         # calculate totals of month and save in object
         total_attendance_days = user_bills.aggregate(total_attendance_days=Sum(F('attendance_days') * F('calculation_factor')))['total_attendance_days']
-        total_luxury = user_bills.aggregate(Sum('luxury_sum'))['luxury_sum__sum']
+        total_luxury = user_bills.aggregate(Sum('luxury_sum'))['luxury_sum__sum'] or 0
 
         food_expense_types = ExpenseType.objects.filter(is_invest=False)
         invest_expense_types = ExpenseType.objects.filter(is_invest=True)
 
         all_food_expenses = Expense.objects.filter(expense_type__in=food_expense_types, user_bill__bill=self)
-        total_supermarket = all_food_expenses.aggregate(Sum('amount'))['amount__sum']
+        total_supermarket = all_food_expenses.aggregate(Sum('amount'))['amount__sum'] or 0
 
         all_invest_expenses = Expense.objects.filter(expense_type__in=invest_expense_types, user_bill__bill=self)
-        total_invest = all_invest_expenses.aggregate(Sum('amount'))['amount__sum']
+        total_invest = all_invest_expenses.aggregate(Sum('amount'))['amount__sum'] or 0
 
         self.total_attendance_days = total_attendance_days
         self.total_supermarket = total_supermarket
@@ -77,7 +77,9 @@ class Bill(models.Model):
                 user_bill.invest_sum = invest_share * user_bill.calculation_factor
             else:
                 user_bill.invest_sum = 0
-            user_bill.total = user_bill.credit - user_bill.food_sum - user_bill.invest_sum - user_bill.luxury_sum
+            user_expense_food = all_food_expenses.filter(user_bill=user_bill).aggregate(Sum('amount'))['amount__sum'] or 0
+            user_expense_invest = all_invest_expenses.filter(user_bill=user_bill).aggregate(Sum('amount'))['amount__sum'] or 0
+            user_bill.total = user_bill.credit + user_expense_food + user_expense_invest - user_bill.food_sum - user_bill.invest_sum - user_bill.luxury_sum
             user_bill.save()
 
 

@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib import admin
 from django.conf import settings
 
@@ -7,6 +8,9 @@ from pumpwerk.slackbot.bot import send_message_to_channel
 
 def calculate_bills(modeladmin, request, queryset):
     for bill in queryset:
+        if UserBill.objects.filter(bill=bill, attendance_days__isnull=True).exists():
+            messages.error(request, "Bill {0} is missing attendance days, skip calculation.".format(bill))
+            continue
         bill.make_bill_calculation()
 calculate_bills.short_description = "Calculate selected Bills"
 
