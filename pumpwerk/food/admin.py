@@ -39,7 +39,7 @@ admin.site.register(Bill, BillAdmin)
 class UserBillAdmin(admin.ModelAdmin):
     list_display = ('bill_year', 'bill_month', 'user', 'calculation_factor', 'expense_types_list', 'attendance_days', 'credit', 'food_sum', 'invest_sum', 'luxury_sum', 'total', 'has_payed', 'is_notified')
     list_filter = ('bill__year', 'bill__month', 'user')
-    # list_editable = ('attendance_days', 'credit', 'luxury_sum')
+    list_editable = ('attendance_days', 'credit', 'luxury_sum')
     readonly_fields = ('food_sum', 'is_notified', 'food_sum', 'invest_sum', 'total')
 
     def bill_year(self, obj):
