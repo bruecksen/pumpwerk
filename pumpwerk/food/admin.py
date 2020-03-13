@@ -1,6 +1,9 @@
+
+from django.db import models
 from django.contrib import messages
 from django.contrib import admin
 from django.conf import settings
+from django.forms import CheckboxSelectMultiple
 
 from pumpwerk.food.models import Bill, UserBill, ExpenseType, Expense
 from pumpwerk.slackbot.bot import send_message_to_channel
@@ -20,6 +23,8 @@ def send_notification(modeladmin, request, queryset):
         bill.make_bill_calculation()
         if not bill.is_notified:
             send_message_to_channel(settings.SLACK_FOOD_CHANNEL, bill)
+            bill.is_notified = True
+            bill.save(update_fields=['is_notified'])
 send_notification.short_description = "Send notification of selected Bills"
 
 
@@ -37,10 +42,18 @@ class BillAdmin(admin.ModelAdmin):
 admin.site.register(Bill, BillAdmin)
 
 class UserBillAdmin(admin.ModelAdmin):
-    list_display = ('bill_year', 'bill_month', 'user', 'calculation_factor', 'expense_types_list', 'attendance_days', 'credit', 'food_sum', 'invest_sum', 'luxury_sum', 'total', 'has_payed', 'is_notified')
+    list_display = ('bill_year', 'bill_month', 'user', 'calculation_factor', 'expense_types_list', 'attendance_days', 'credit', 'food_sum', 'invest_sum', 'luxury_sum', 'total', 'has_payed')
     list_filter = ('bill__year', 'bill__month', 'user')
     list_editable = ('attendance_days', 'credit', 'luxury_sum', 'has_payed')
-    readonly_fields = ('food_sum', 'is_notified', 'food_sum', 'invest_sum', 'total')
+    formfield_overrides = {
+        models.ManyToManyField: {'widget': CheckboxSelectMultiple},
+    }
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = ('food_sum', 'invest_sum', 'total')
+        if obj.bill.is_notified:
+            readonly_fields += ('attendance_days', 'credit', 'luxury_sum', 'calculation_factor',)
+        return readonly_fields
 
     def bill_year(self, obj):
         return obj.bill.year
