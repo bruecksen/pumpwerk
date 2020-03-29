@@ -80,6 +80,7 @@ class Bill(models.Model):
             user_expense_food = all_food_expenses.filter(user_bill=user_bill).aggregate(Sum('amount'))['amount__sum'] or 0
             user_expense_invest = all_invest_expenses.filter(user_bill=user_bill).aggregate(Sum('amount'))['amount__sum'] or 0
             user_bill.total = user_bill.credit + user_expense_food + user_expense_invest - user_bill.food_sum - user_bill.invest_sum - user_bill.luxury_sum
+            user_bill.expense_sum = user_expense_food + user_expense_invest
             user_bill.save()
 
 
@@ -93,6 +94,7 @@ class UserBill(models.Model):
     food_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     luxury_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     invest_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
+    expense_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     total = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     has_payed = models.BooleanField(default=False)
 
