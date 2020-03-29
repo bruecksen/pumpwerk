@@ -42,7 +42,7 @@ class BillAdmin(admin.ModelAdmin):
 admin.site.register(Bill, BillAdmin)
 
 class UserBillAdmin(admin.ModelAdmin):
-    list_display = ('bill_year', 'bill_month', 'user', 'calculation_factor', 'expense_types_list', 'attendance_days', 'credit', 'food_sum', 'invest_sum', 'luxury_sum', 'total', 'has_payed')
+    list_display = ('bill_year', 'bill_month', 'user', 'calculation_factor', 'expense_types_list', 'attendance_days', 'credit', 'expense_sum', 'food_sum', 'invest_sum', 'luxury_sum', 'total', 'has_payed')
     list_filter = ('bill__year', 'bill__month', 'user')
     list_editable = ('attendance_days', 'credit', 'luxury_sum', 'has_payed')
     formfield_overrides = {
@@ -50,7 +50,7 @@ class UserBillAdmin(admin.ModelAdmin):
     }
 
     def get_readonly_fields(self, request, obj=None):
-        readonly_fields = ('food_sum', 'invest_sum', 'total')
+        readonly_fields = ('food_sum', 'invest_sum', 'total', 'expense_sum')
         if obj.bill.is_notified:
             readonly_fields += ('attendance_days', 'credit', 'luxury_sum', 'calculation_factor',)
         return readonly_fields
