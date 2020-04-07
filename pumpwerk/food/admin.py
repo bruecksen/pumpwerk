@@ -78,7 +78,7 @@ admin.site.register(ExpenseType, ExpenseTypeAdmin)
 
 
 class ExpenseAdmin(admin.ModelAdmin):
-        list_display = ('year', 'month', 'user', 'expense_type', 'amount')
+        list_display = ('year', 'month', 'user', 'expense_type', 'amount', 'comment')
 
         def user(self, obj):
             return obj.user_bill.user
