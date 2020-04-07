@@ -28,6 +28,7 @@ class Bill(models.Model):
     total_luxury = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     daily_rate = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     is_notified = models.BooleanField(default=False)
+    comment = models.TextField(blank=True, null=True)
 
 
     class Meta:
@@ -87,7 +88,7 @@ class Bill(models.Model):
 class UserBill(models.Model):
     bill = models.ForeignKey('Bill', on_delete=models.PROTECT)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    calculation_factor = models.DecimalField(max_digits=8, decimal_places=2, default=1, verbose_name='Calc. factor')
+    calculation_factor = models.DecimalField(max_digits=8, decimal_places=2, default=1, verbose_name='Calcf.')
     expense_types = models.ManyToManyField('ExpenseType')
     attendance_days = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     credit = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
@@ -96,7 +97,8 @@ class UserBill(models.Model):
     invest_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     expense_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     total = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
-    has_payed = models.BooleanField(default=False)
+    has_payed = models.BooleanField(default=False, verbose_name='Payed?')
+    comment = models.TextField(blank=True, null=True)
 
     class Meta:
         unique_together = ['bill', 'user']
@@ -122,6 +124,7 @@ class Expense(models.Model):
     expense_type = models.ForeignKey(ExpenseType, on_delete=models.PROTECT)
     user_bill = models.ForeignKey(UserBill, on_delete=models.PROTECT)
     amount = models.DecimalField(max_digits=8, decimal_places=2)
+    comment = models.TextField(blank=True, null=True)
 
     class Meta:
         verbose_name = 'Expense'
