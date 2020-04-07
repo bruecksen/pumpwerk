@@ -90,7 +90,7 @@ class UserBill(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     calculation_factor = models.DecimalField(max_digits=8, decimal_places=2, default=1, verbose_name='Calcf.')
     expense_types = models.ManyToManyField('ExpenseType')
-    attendance_days = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    attendance_days = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, verbose_name='Attend. days')
     credit = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     food_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     luxury_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
