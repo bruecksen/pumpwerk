@@ -130,4 +130,35 @@ class Expense(models.Model):
         verbose_name = 'Expense'
 
 
+class Inventory(models.Model):
+    month = models.PositiveSmallIntegerField(choices=MONTHS.items())
+    year = models.PositiveIntegerField(default=date.today().year)
+    sum_inventory = models.DecimalField(max_digits=8, decimal_places=2)
+    sum_cash = models.DecimalField(max_digits=8, decimal_places=2)
+    comment = models.TextField(blank=True, null=True)
 
+    class Meta:
+        unique_together = ['month', 'year']
+        ordering = ['-year', '-month']
+        verbose_name = 'Inventory'
+        verbose_name_plural = 'Inventories'
+
+    def __str__(self):
+        return "Inventory: {}-{}".format(self.month, self.year)
+
+
+class TerraInvoice(models.Model):
+    date = models.DateField()
+    invoice_number = models.CharField(max_length=255, blank=True, null=True)
+    invoice_sum = models.DecimalField(max_digits=8, decimal_places=2)
+    deposit_sum = models.DecimalField(max_digits=8, decimal_places=2)
+    luxury_sum = models.DecimalField(max_digits=8, decimal_places=2)
+    other_sum = models.DecimalField(max_digits=8, decimal_places=2, default=0, help_text="Other extraordinary sum wich should not be included in the terra factor.")
+
+    class Meta:
+        verbose_name = 'Terra Invoice'
+        verbose_name_plural = 'Terra Invoices'
+        ordering = ['-date']
+
+    def __str__(self):
+        return "Terra Invoice: {}".format(self.date)

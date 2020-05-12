@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.conf import settings
 from django.forms import CheckboxSelectMultiple
 
-from pumpwerk.food.models import Bill, UserBill, ExpenseType, Expense
+from pumpwerk.food.models import Bill, UserBill, ExpenseType, Expense, Inventory, TerraInvoice
 from pumpwerk.slackbot.bot import send_message_to_channel
 
 
@@ -93,3 +93,17 @@ class ExpenseAdmin(admin.ModelAdmin):
         user.month = "Month"
 
 admin.site.register(Expense, ExpenseAdmin)
+
+
+class InventoryAdmin(admin.ModelAdmin):
+    list_display = ('month', 'year', 'sum_inventory', 'sum_cash')
+    list_filter = ('year', )
+
+admin.site.register(Inventory, InventoryAdmin)
+
+
+class TerraInvoiceAdmin(admin.ModelAdmin):
+    list_display = ('date', 'invoice_number', 'invoice_sum', 'deposit_sum', 'luxury_sum', 'other_sum')
+    # list_filter = ('year', )
+
+admin.site.register(TerraInvoice, TerraInvoiceAdmin)
