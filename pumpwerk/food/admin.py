@@ -49,6 +49,7 @@ class UserBillAdmin(admin.ModelAdmin):
         models.ManyToManyField: {'widget': CheckboxSelectMultiple},
     }
     save_on_top = True
+    list_per_page = 15
 
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = ('food_sum', 'invest_sum', 'total', 'expense_sum')
