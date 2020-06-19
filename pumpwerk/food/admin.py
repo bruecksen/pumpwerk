@@ -104,7 +104,7 @@ admin.site.register(Inventory, InventoryAdmin)
 
 
 class TerraInvoiceAdmin(admin.ModelAdmin):
-    list_display = ('date', 'invoice_number', 'invoice_sum', 'deposit_sum', 'luxury_sum', 'other_sum')
+    list_display = ('date', 'invoice_number', 'invoice_sum', 'deposit_sum', 'luxury_sum', 'other_sum', 'is_pumpwerk')
     # list_filter = ('year', )
 
 admin.site.register(TerraInvoice, TerraInvoiceAdmin)

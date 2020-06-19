@@ -154,6 +154,7 @@ class TerraInvoice(models.Model):
     deposit_sum = models.DecimalField(max_digits=8, decimal_places=2)
     luxury_sum = models.DecimalField(max_digits=8, decimal_places=2)
     other_sum = models.DecimalField(max_digits=8, decimal_places=2, default=0, help_text="Other extraordinary sum wich should not be included in the terra factor.")
+    is_pumpwerk = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = 'Terra Invoice'
