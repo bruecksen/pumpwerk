@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.conf import settings
 from django.forms import CheckboxSelectMultiple
 
-from pumpwerk.food.models import Bill, UserBill, ExpenseType, Expense, Inventory, TerraInvoice, Payment
+from pumpwerk.food.models import Bill, UserBill, ExpenseType, Expense, Inventory, TerraInvoice, Payment, Account
 from pumpwerk.slackbot.bot import send_message_to_channel
 
 
@@ -32,7 +32,7 @@ send_notification.short_description = "Send notification of selected Bills"
 class BillAdmin(admin.ModelAdmin):
     list_display = ('bill_date', 'days_in_month', 'terra_daily_rate', 'member_count', 'total_attendance_days', 'total_supermarket', 'total_invest', 'total_terra', 'total_luxury', 'daily_rate', 'is_notified')
     date_hierarchy = 'bill_date'
-    readonly_fields=('total_attendance_days', 'total_supermarket', 'total_terra', 'total_invest', 'total_luxury', 'daily_rate')
+    readonly_fields = ('total_attendance_days', 'total_supermarket', 'total_terra', 'total_invest', 'total_luxury', 'daily_rate')
     actions = [calculate_bills, send_notification]
 
     def member_count(self, obj):
@@ -76,19 +76,15 @@ admin.site.register(ExpenseType, ExpenseTypeAdmin)
 
 
 class ExpenseAdmin(admin.ModelAdmin):
-        list_display = ('year', 'month', 'user', 'expense_type', 'amount', 'comment')
+        list_display = ('bill_date', 'user', 'expense_type', 'amount', 'comment')
 
         def user(self, obj):
             return obj.user_bill.user
         user.short_description = "User"
 
-        def year(self, obj):
-            return obj.user_bill.bill.year
-        year.short_description = "Year"
-
-        def month(self, obj):
-            return obj.user_bill.bill.get_month()
-        month.short_description = "Month"
+        def bill_date(self, obj):
+            return obj.user_bill.bill.bill_date
+        bill_date.short_description = "Bill date"
 
 admin.site.register(Expense, ExpenseAdmin)
 
@@ -107,8 +103,21 @@ class PaymentAdmin(admin.ModelAdmin):
 admin.site.register(Payment, PaymentAdmin)
 
 
+def calculate_account(modeladmin, request, queryset):
+    for account in queryset:
+        account.calculate()
+calculate_account.short_description = "Calculate selected Accounts"
+
+class AccountAdmin(admin.ModelAdmin):
+    list_display = ('title', 'inventory', 'additional_inventory_food', 'luxury_sum', 'terra_brutto_all_sum', 'terra_food_others_sum', 'total_food_expenses', 'attendance_day_sum', 'corrected_terra_daily_rate')
+    readonly_fields = ['additional_inventory_food', 'luxury_sum', 'terra_brutto_all_sum', 'terra_food_others_sum', 'attendance_day_sum', 'corrected_terra_daily_rate']
+    actions = [calculate_account]
+
+admin.site.register(Account, AccountAdmin)
+
+
 class TerraInvoiceAdmin(admin.ModelAdmin):
-    list_display = ('date', 'invoice_number', 'invoice_sum', 'deposit_sum', 'luxury_sum', 'other_sum', 'is_pumpwerk', 'is_paid')
+    list_display = ('terra_invoice_date', 'invoice_number', 'invoice_sum', 'deposit_sum', 'luxury_sum', 'other_sum', 'is_pumpwerk', 'is_paid')
     # list_filter = ('year', )
 
     def is_paid(self, obj):

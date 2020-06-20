@@ -36,7 +36,7 @@ class Bill(models.Model):
         return "Bill {}".format(self.bill_date)
 
     def save(self, *args, **kwargs):
-        self.days_in_month = monthrange(self.year, self.month)[1]
+        self.days_in_month = monthrange(self.bill_date.year, self.bill_date.month)[1]
         super(Bill, self).save(*args, **kwargs)
 
     def get_month(self):
@@ -143,11 +143,11 @@ class Inventory(models.Model):
         return "Inventory: {}".format(self.inventory_date)
 
     def get_previous_inventory(self):
-        return Iventory.objects.filter(created__lt=self.created).first()
+        return Inventory.objects.filter(inventory_date__lt=self.inventory_date).first()
 
 
 class TerraInvoice(models.Model):
-    date = models.DateField()
+    terra_invoice_date = models.DateField()
     invoice_number = models.CharField(max_length=255, blank=True, null=True)
     invoice_sum = models.DecimalField(max_digits=8, decimal_places=2)
     deposit_sum = models.DecimalField(max_digits=8, decimal_places=2)
@@ -158,10 +158,10 @@ class TerraInvoice(models.Model):
     class Meta:
         verbose_name = 'Terra Invoice'
         verbose_name_plural = 'Terra Invoices'
-        ordering = ['-date']
+        ordering = ['-terra_invoice_date']
 
     def __str__(self):
-        return "Terra Invoice: {} {}".format(self.invoice_number, self.date)
+        return "Terra Invoice: {} {}".format(self.invoice_number, self.terra_invoice_date)
 
 
 class Payment(models.Model):
@@ -180,13 +180,14 @@ class Payment(models.Model):
 
 
 class Account(models.Model):
-    name = models.CharField(max_length=255)
+    title = models.CharField(max_length=255)
     inventory = models.OneToOneField('Inventory', on_delete=models.PROTECT)
-    inventory_food_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
-    luxus_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    additional_inventory_food = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    luxury_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     terra_brutto_all_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, help_text="Sum of all brutto terra invoice totals")
     terra_food_others_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, help_text="Sum of all terra invoices without deposit and not from pumpwerk")
     attendance_day_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    total_food_expenses = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     corrected_terra_daily_rate = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     comment = models.TextField(blank=True, null=True)
 
@@ -198,14 +199,24 @@ class Account(models.Model):
     def __str__(self):
         return "Account: {}".format(self.title)
 
-    def calculate_account(self):
+    def calculate(self):
         previous_inventory = self.inventory.get_previous_inventory()
-        self.inventory_food_sum = (self.inventory.sum_inventory - self.inventory.sum_luxury) - (self.previous_inventory.sum_inventory - self.previous_inventory.sum_luxury)
+        self.additional_inventory_food = (self.inventory.sum_inventory - self.inventory.sum_luxury) - (previous_inventory.sum_inventory - previous_inventory.sum_luxury)
         
-        user_bills = UserBill.objects.filter(bill_in=self.inventory.bills)
-        self.attendance_day_sum = user_bills.aggregate(Sum('attendance_days'))['attendance_days_sum']
+        user_bills = UserBill.objects.filter(bill__in=self.inventory.bills.all())
+        self.attendance_day_sum = user_bills.aggregate(attendance_days_sum=Sum('attendance_days'))['attendance_days_sum']
 
-        self.save(update_fields=['inventory_food_sum', 'attendance_day_sum'])
+        terra_invoices = TerraInvoice.objects.filter(terra_invoice_date__gt=previous_inventory.inventory_date, terra_invoice_date__lte=self.inventory.inventory_date)
+        terra_sums = terra_invoices.aggregate(invoice_sum=Sum('invoice_sum'), deposit_sum=Sum('deposit_sum'), luxury_sum=Sum('luxury_sum'), other_sum=Sum('other_sum'))
+        self.luxury_sum = terra_sums['luxury_sum']
+        self.terra_brutto_all_sum = terra_sums['invoice_sum']
+        other_invoice_sum = terra_invoices.filter(is_pumpwerk=False).aggregate(invoice_sum=Sum('invoice_sum'))['invoice_sum']
+        other_invoice_deposit_sum = terra_invoices.filter(is_pumpwerk=False).aggregate(deposit_sum=Sum('deposit_sum'))['deposit_sum']
+        self.terra_food_others_sum = other_invoice_sum - other_invoice_deposit_sum
+
+        self.total_food_expenses = self.terra_brutto_all_sum - self.terra_food_others_sum - self.luxury_sum
+        self.corrected_terra_daily_rate = self.total_food_expenses / self.attendance_day_sum
+        self.save(update_fields=['additional_inventory_food', 'attendance_day_sum', 'luxury_sum', 'terra_brutto_all_sum', 'terra_food_others_sum', 'corrected_terra_daily_rate', 'total_food_expenses'])
 
 
 class UserPayback(models.Model):
