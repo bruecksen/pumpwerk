@@ -109,8 +109,8 @@ def calculate_account(modeladmin, request, queryset):
 calculate_account.short_description = "Calculate selected Accounts"
 
 class AccountAdmin(admin.ModelAdmin):
-    list_display = ('title', 'inventory', 'additional_inventory_food', 'luxury_sum', 'terra_brutto_all_sum', 'terra_food_others_sum', 'total_food_expenses', 'attendance_day_sum', 'corrected_terra_daily_rate')
-    readonly_fields = ['additional_inventory_food', 'luxury_sum', 'terra_brutto_all_sum', 'terra_food_others_sum', 'attendance_day_sum', 'corrected_terra_daily_rate']
+    list_display = ('title', 'inventory', 'additional_inventory_food', 'luxury_sum', 'terra_brutto_all_sum', 'terra_brutto_others_sum', 'terra_food_others_sum', 'total_food_pumpwerk_expenses', 'attendance_day_sum', 'corrected_terra_daily_rate')
+    readonly_fields = ['additional_inventory_food', 'luxury_sum', 'terra_brutto_all_sum', 'terra_food_others_sum', 'attendance_day_sum', 'corrected_terra_daily_rate', 'total_food_pumpwerk_expenses', 'terra_brutto_others_sum']
     actions = [calculate_account]
 
 admin.site.register(Account, AccountAdmin)

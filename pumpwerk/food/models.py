@@ -186,8 +186,9 @@ class Account(models.Model):
     luxury_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     terra_brutto_all_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, help_text="Sum of all brutto terra invoice totals")
     terra_food_others_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, help_text="Sum of all terra invoices without deposit and not from pumpwerk")
+    terra_brutto_others_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, help_text="Sum of all terra invoices without deposit and not from pumpwerk")
     attendance_day_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
-    total_food_expenses = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    total_food_pumpwerk_expenses = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     corrected_terra_daily_rate = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     comment = models.TextField(blank=True, null=True)
 
@@ -210,13 +211,15 @@ class Account(models.Model):
         terra_sums = terra_invoices.aggregate(invoice_sum=Sum('invoice_sum'), deposit_sum=Sum('deposit_sum'), luxury_sum=Sum('luxury_sum'), other_sum=Sum('other_sum'))
         self.luxury_sum = terra_sums['luxury_sum']
         self.terra_brutto_all_sum = terra_sums['invoice_sum']
-        other_invoice_sum = terra_invoices.filter(is_pumpwerk=False).aggregate(invoice_sum=Sum('invoice_sum'))['invoice_sum']
+        terra_brutto_others_sum = terra_invoices.filter(is_pumpwerk=False).aggregate(invoice_sum=Sum('invoice_sum'))['invoice_sum']
         other_invoice_deposit_sum = terra_invoices.filter(is_pumpwerk=False).aggregate(deposit_sum=Sum('deposit_sum'))['deposit_sum']
-        self.terra_food_others_sum = other_invoice_sum - other_invoice_deposit_sum
+        self.terra_food_others_sum = terra_brutto_others_sum - other_invoice_deposit_sum
 
-        self.total_food_expenses = self.terra_brutto_all_sum - self.terra_food_others_sum - self.luxury_sum
-        self.corrected_terra_daily_rate = self.total_food_expenses / self.attendance_day_sum
-        self.save(update_fields=['additional_inventory_food', 'attendance_day_sum', 'luxury_sum', 'terra_brutto_all_sum', 'terra_food_others_sum', 'corrected_terra_daily_rate', 'total_food_expenses'])
+        self.terra_brutto_others_sum = terra_brutto_others_sum
+
+        self.total_food_pumpwerk_expenses = self.terra_brutto_all_sum - self.terra_food_others_sum - self.luxury_sum
+        self.corrected_terra_daily_rate = self.total_food_pumpwerk_expenses / self.attendance_day_sum
+        self.save(update_fields=['additional_inventory_food', 'attendance_day_sum', 'luxury_sum', 'terra_brutto_all_sum', 'terra_food_others_sum', 'corrected_terra_daily_rate', 'total_food_pumpwerk_expenses', 'terra_brutto_others_sum'])
 
 
 class UserPayback(models.Model):
