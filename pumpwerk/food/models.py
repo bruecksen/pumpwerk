@@ -1,11 +1,9 @@
 from calendar import monthrange
 from datetime import date
 
-from django.db.models import Sum
-from django.db.models import F
-from django.db import models
 from django.conf import settings
-
+from django.db import models
+from django.db.models import F, Sum
 
 MONTHS = {
     1: 'Januar', 2: 'Februar', 3: 'März', 4: 'April', 5: 'Mai', 6: 'Juni',
@@ -15,6 +13,7 @@ MONTHS = {
 
 
 class Bill(models.Model):
+    bill_date = models.DateField(blank=True, null=True)
     month = models.PositiveSmallIntegerField(choices=MONTHS.items())
     year = models.PositiveIntegerField(default=date.today().year)
     days_in_month = models.PositiveIntegerField(editable=False, verbose_name='Days/Mo')
@@ -32,8 +31,7 @@ class Bill(models.Model):
 
 
     class Meta:
-        unique_together = ['month', 'year']
-        ordering = ['-year', '-month']
+        ordering = ['-bill_date']
         verbose_name = 'Bill'
 
     def __str__(self):
@@ -97,12 +95,12 @@ class UserBill(models.Model):
     invest_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     expense_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     total = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
-    has_payed = models.BooleanField(default=False, verbose_name='Payed?')
+    has_paid = models.BooleanField(default=False, verbose_name='Paid?')
     comment = models.TextField(blank=True, null=True)
 
     class Meta:
         unique_together = ['bill', 'user']
-        ordering = ['-bill__year', '-bill__month']
+        ordering = ['-bill__bill_date']
         verbose_name = 'User Bill'
 
     def __str__(self):
@@ -133,18 +131,23 @@ class Expense(models.Model):
 class Inventory(models.Model):
     month = models.PositiveSmallIntegerField(choices=MONTHS.items())
     year = models.PositiveIntegerField(default=date.today().year)
+    created = models.DateField(default=date.today)
     sum_inventory = models.DecimalField(max_digits=8, decimal_places=2)
     sum_cash = models.DecimalField(max_digits=8, decimal_places=2)
+    sum_luxury = models.DecimalField(max_digits=8, decimal_places=2)
     comment = models.TextField(blank=True, null=True)
+    bills = models.ManyToManyField('Bill')
 
     class Meta:
-        unique_together = ['month', 'year']
-        ordering = ['-year', '-month']
+        ordering = ['-created']
         verbose_name = 'Inventory'
         verbose_name_plural = 'Inventories'
 
     def __str__(self):
         return "Inventory: {}-{}".format(self.month, self.year)
+
+    def get_previous_inventory(self):
+        return Iventory.objects.filter(created__lt=self.created).first()
 
 
 class TerraInvoice(models.Model):
@@ -154,7 +157,7 @@ class TerraInvoice(models.Model):
     deposit_sum = models.DecimalField(max_digits=8, decimal_places=2)
     luxury_sum = models.DecimalField(max_digits=8, decimal_places=2)
     other_sum = models.DecimalField(max_digits=8, decimal_places=2, default=0, help_text="Other extraordinary sum wich should not be included in the terra factor.")
-    is_pumpwerk = models.BooleanField(default=True)
+    is_pumpwerk = models.BooleanField(default=True, verbose_name='Is pumpwerk order?')
 
     class Meta:
         verbose_name = 'Terra Invoice'
@@ -162,4 +165,62 @@ class TerraInvoice(models.Model):
         ordering = ['-date']
 
     def __str__(self):
-        return "Terra Invoice: {}".format(self.date)
+        return "Terra Invoice: {}".format(self.invoice_number)
+
+
+class Payment(models.Model):
+    title = models.CharField(max_length=255)
+    when = models.DateField(default=date.today)
+    payment_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    bills = models.ManyToManyField('TerraInvoice')
+
+    class Meta:
+        verbose_name = 'Payment'
+        verbose_name_plural = 'Payments'
+        ordering = ['-when']
+
+    def __str__(self):
+        return "Payment: {}".format(self.when)
+
+
+class Account(models.Model):
+    name = models.CharField(max_length=255)
+    inventory = models.OneToOneField('Inventory', on_delete=models.PROTECT)
+    inventory_food_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    luxus_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    terra_brutto_all_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, help_text="Sum of all brutto terra invoice totals")
+    terra_food_others_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, help_text="Sum of all terra invoices without deposit and not from pumpwerk")
+    attendance_day_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    corrected_terra_daily_rate = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    comment = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Account'
+        verbose_name_plural = 'Accounts'
+        ordering = ['-inventory__created']
+
+    def __str__(self):
+        return "Account: {}".format(self.title)
+
+    def calculate_account(self):
+        previous_inventory = self.inventory.get_previous_inventory()
+        self.inventory_food_sum = (self.inventory.sum_inventory - self.inventory.sum_luxury) - (self.previous_inventory.sum_inventory - self.previous_inventory.sum_luxury)
+        
+        user_bills = UserBill.objects.filter(bill_in=self.inventory.bills)
+        self.attendance_day_sum = user_bills.aggregate(Sum('attendance_days'))['attendance_days_sum']
+
+
+class UserPayback(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    account = models.ForeignKey('Account', on_delete=models.PROTECT)
+    total = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    has_paid = models.BooleanField(default=False, verbose_name='Paid?')
+    comment = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'User payback'
+        verbose_name_plural = 'User paybacks'
+        ordering = ['-account__from_month', 'user']
+
+    def __str__(self):
+        return "User payback: {}".format(self.account.title)

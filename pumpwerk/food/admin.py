@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.conf import settings
 from django.forms import CheckboxSelectMultiple
 
-from pumpwerk.food.models import Bill, UserBill, ExpenseType, Expense, Inventory, TerraInvoice
+from pumpwerk.food.models import Bill, UserBill, ExpenseType, Expense, Inventory, TerraInvoice, Payment
 from pumpwerk.slackbot.bot import send_message_to_channel
 
 
@@ -30,8 +30,8 @@ send_notification.short_description = "Send notification of selected Bills"
 
 
 class BillAdmin(admin.ModelAdmin):
-    list_display = ('month', 'year', 'days_in_month', 'terra_daily_rate', 'member_count', 'total_attendance_days', 'total_supermarket', 'total_invest', 'total_terra', 'total_luxury', 'daily_rate', 'is_notified')
-    list_filter = ('year', )
+    list_display = ('bill_date', 'days_in_month', 'terra_daily_rate', 'member_count', 'total_attendance_days', 'total_supermarket', 'total_invest', 'total_terra', 'total_luxury', 'daily_rate', 'is_notified')
+    date_hierarchy = 'bill_date'
     readonly_fields=('total_attendance_days', 'total_supermarket', 'total_terra', 'total_invest', 'total_luxury', 'daily_rate')
     actions = [calculate_bills, send_notification]
 
@@ -42,9 +42,10 @@ class BillAdmin(admin.ModelAdmin):
 admin.site.register(Bill, BillAdmin)
 
 class UserBillAdmin(admin.ModelAdmin):
-    list_display = ('bill_year', 'bill_month', 'user', 'calculation_factor', 'attendance_days', 'credit', 'expense_sum', 'food_sum', 'invest_sum', 'luxury_sum', 'total', 'has_payed')
-    list_filter = ('bill__year', 'bill__month', 'user')
-    list_editable = ('attendance_days', 'credit', 'luxury_sum', 'has_payed')
+    list_display = ('bill_year', 'bill_month', 'user', 'calculation_factor', 'attendance_days', 'credit', 'expense_sum', 'food_sum', 'invest_sum', 'luxury_sum', 'total', 'has_paid')
+    date_hierarchy = 'bill__bill_date'
+    list_filter = ('user',)
+    list_editable = ('attendance_days', 'credit', 'luxury_sum', 'has_paid')
     formfield_overrides = {
         models.ManyToManyField: {'widget': CheckboxSelectMultiple},
     }
@@ -87,24 +88,35 @@ class ExpenseAdmin(admin.ModelAdmin):
 
         def year(self, obj):
             return obj.user_bill.bill.year
-        user.year = "Year"
+        year.short_description = "Year"
 
         def month(self, obj):
             return obj.user_bill.bill.get_month()
-        user.month = "Month"
+        month.short_description = "Month"
 
 admin.site.register(Expense, ExpenseAdmin)
 
 
 class InventoryAdmin(admin.ModelAdmin):
-    list_display = ('month', 'year', 'sum_inventory', 'sum_cash')
+    list_display = ('month', 'year', 'sum_inventory', 'sum_cash', 'sum_luxury')
     list_filter = ('year', )
 
 admin.site.register(Inventory, InventoryAdmin)
 
 
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ('title', 'when', 'payment_sum',)
+    list_filter = ('when', )
+
+admin.site.register(Payment, PaymentAdmin)
+
+
 class TerraInvoiceAdmin(admin.ModelAdmin):
-    list_display = ('date', 'invoice_number', 'invoice_sum', 'deposit_sum', 'luxury_sum', 'other_sum', 'is_pumpwerk')
+    list_display = ('date', 'invoice_number', 'invoice_sum', 'deposit_sum', 'luxury_sum', 'other_sum', 'is_pumpwerk', 'is_paid')
     # list_filter = ('year', )
 
+    def is_paid(self, obj):
+        return obj.payment_set.exists()
+    is_paid.short_description = "Is paid?"
+    is_paid.boolean = True
 admin.site.register(TerraInvoice, TerraInvoiceAdmin)
