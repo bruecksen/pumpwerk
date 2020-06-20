@@ -42,7 +42,7 @@ class BillAdmin(admin.ModelAdmin):
 admin.site.register(Bill, BillAdmin)
 
 class UserBillAdmin(admin.ModelAdmin):
-    list_display = ('bill_year', 'bill_month', 'user', 'calculation_factor', 'attendance_days', 'credit', 'expense_sum', 'food_sum', 'invest_sum', 'luxury_sum', 'total', 'has_paid')
+    list_display = ('bill_date', 'user', 'calculation_factor', 'attendance_days', 'credit', 'expense_sum', 'food_sum', 'invest_sum', 'luxury_sum', 'total', 'has_paid')
     date_hierarchy = 'bill__bill_date'
     list_filter = ('user',)
     list_editable = ('attendance_days', 'credit', 'luxury_sum', 'has_paid')
@@ -58,13 +58,9 @@ class UserBillAdmin(admin.ModelAdmin):
             readonly_fields += ('attendance_days', 'credit', 'luxury_sum', 'calculation_factor',)
         return readonly_fields
 
-    def bill_year(self, obj):
-        return obj.bill.year
-    bill_year.short_description = "Year"
-
-    def bill_month(self, obj):
-        return obj.bill.get_month()
-    bill_month.short_description = "Month"
+    def bill_date(self, obj):
+        return obj.bill.bill_date
+    bill_date.short_description = "Bill date"
 
     def expense_types_list(self, obj):
         return ', '.join([e.name for e in obj.expense_types.all()])
@@ -98,15 +94,15 @@ admin.site.register(Expense, ExpenseAdmin)
 
 
 class InventoryAdmin(admin.ModelAdmin):
-    list_display = ('month', 'year', 'sum_inventory', 'sum_cash', 'sum_luxury')
-    list_filter = ('year', )
+    date_hierarchy = 'inventory_date'
+    list_display = ('inventory_date',  'sum_inventory', 'sum_cash', 'sum_luxury')
 
 admin.site.register(Inventory, InventoryAdmin)
 
 
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('title', 'when', 'payment_sum',)
-    list_filter = ('when', )
+    date_hierarchy = 'payment_date'
+    list_display = ('title', 'payment_date', 'payment_sum',)
 
 admin.site.register(Payment, PaymentAdmin)
 

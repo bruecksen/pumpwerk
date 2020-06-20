@@ -14,8 +14,6 @@ MONTHS = {
 
 class Bill(models.Model):
     bill_date = models.DateField(blank=True, null=True)
-    month = models.PositiveSmallIntegerField(choices=MONTHS.items())
-    year = models.PositiveIntegerField(default=date.today().year)
     days_in_month = models.PositiveIntegerField(editable=False, verbose_name='Days/Mo')
     members = models.ManyToManyField(settings.AUTH_USER_MODEL)
     expense_types = models.ManyToManyField('ExpenseType')
@@ -35,7 +33,7 @@ class Bill(models.Model):
         verbose_name = 'Bill'
 
     def __str__(self):
-        return "%s %s" % (self.get_month(), self.year)
+        return "Bill {}".format(self.bill_date)
 
     def save(self, *args, **kwargs):
         self.days_in_month = monthrange(self.year, self.month)[1]
@@ -129,22 +127,20 @@ class Expense(models.Model):
 
 
 class Inventory(models.Model):
-    month = models.PositiveSmallIntegerField(choices=MONTHS.items())
-    year = models.PositiveIntegerField(default=date.today().year)
-    created = models.DateField(default=date.today)
+    inventory_date = models.DateField(default=date.today)
     sum_inventory = models.DecimalField(max_digits=8, decimal_places=2)
     sum_cash = models.DecimalField(max_digits=8, decimal_places=2)
     sum_luxury = models.DecimalField(max_digits=8, decimal_places=2)
     comment = models.TextField(blank=True, null=True)
-    bills = models.ManyToManyField('Bill')
+    bills = models.ManyToManyField('Bill', blank=True)
 
     class Meta:
-        ordering = ['-created']
+        ordering = ['-inventory_date']
         verbose_name = 'Inventory'
         verbose_name_plural = 'Inventories'
 
     def __str__(self):
-        return "Inventory: {}-{}".format(self.month, self.year)
+        return "Inventory: {}".format(self.inventory_date)
 
     def get_previous_inventory(self):
         return Iventory.objects.filter(created__lt=self.created).first()
@@ -165,19 +161,19 @@ class TerraInvoice(models.Model):
         ordering = ['-date']
 
     def __str__(self):
-        return "Terra Invoice: {}".format(self.invoice_number)
+        return "Terra Invoice: {} {}".format(self.invoice_number, self.date)
 
 
 class Payment(models.Model):
     title = models.CharField(max_length=255)
-    when = models.DateField(default=date.today)
+    payment_date = models.DateField(default=date.today)
     payment_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     bills = models.ManyToManyField('TerraInvoice')
 
     class Meta:
         verbose_name = 'Payment'
         verbose_name_plural = 'Payments'
-        ordering = ['-when']
+        ordering = ['-payment_date']
 
     def __str__(self):
         return "Payment: {}".format(self.when)
@@ -208,6 +204,8 @@ class Account(models.Model):
         
         user_bills = UserBill.objects.filter(bill_in=self.inventory.bills)
         self.attendance_day_sum = user_bills.aggregate(Sum('attendance_days'))['attendance_days_sum']
+
+        self.save(update_fields=['inventory_food_sum', 'attendance_day_sum'])
 
 
 class UserPayback(models.Model):
