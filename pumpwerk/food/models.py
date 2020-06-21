@@ -228,7 +228,7 @@ class Account(models.Model):
 
         self.terra_food_pumpwerk_sum = self.terra_brutto_all_sum - self.terra_food_others_sum - self.terra_luxury_sum - self.terra_deposit_sum
         self.food_expenses_pumpwerk_sum = self.terra_food_pumpwerk_sum - self.additional_inventory_food
-        self.corrected_terra_daily_rate = self.total_food_pumpwerk_expenses / self.attendance_day_sum
+        self.corrected_terra_daily_rate = self.food_expenses_pumpwerk_sum / self.attendance_day_sum
         self.save()
 
 
