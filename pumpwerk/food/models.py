@@ -184,7 +184,7 @@ class Account(models.Model):
     inventory = models.OneToOneField('Inventory', on_delete=models.PROTECT)
     additional_inventory_food = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Add. inv. food')
     terra_luxury_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
-    consumed_luxury = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    luxury_consumed = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     luxury_paid_diff = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Lux paid diff')
     terra_brutto_all_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, help_text="Sum of all brutto terra invoice totals", verbose_name='Tot. Terra brutto (all)')
     terra_food_others_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Tot. food (others)')
@@ -212,7 +212,7 @@ class Account(models.Model):
         user_bills = UserBill.objects.filter(bill__in=self.inventory.bills.all())
         self.attendance_day_sum = user_bills.aggregate(attendance_days_sum=Sum('attendance_days'))['attendance_days_sum']
         user_bill_luxury_sum = user_bills.aggregate(luxury_sum=Sum('luxury_sum'))['luxury_sum']
-
+        
         terra_invoices = TerraInvoice.objects.filter(terra_invoice_date__gt=previous_inventory.inventory_date, terra_invoice_date__lte=self.inventory.inventory_date)
         terra_sums = terra_invoices.aggregate(invoice_sum=Sum('invoice_sum'), deposit_sum=Sum('deposit_sum'), luxury_sum=Sum('luxury_sum'), other_sum=Sum('other_sum'))
         self.terra_luxury_sum = terra_sums['luxury_sum']

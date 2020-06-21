@@ -110,7 +110,7 @@ calculate_account.short_description = "Calculate selected Accounts"
 
 class AccountAdmin(admin.ModelAdmin):
     list_display = ('title', 'inventory_date', 'terra_food_others_sum', 'terra_brutto_all_sum', 'food_expenses_pumpwerk_sum', 'luxury_paid_diff', 'terra_deposit_sum', 'attendance_day_sum', 'corrected_terra_daily_rate')
-    readonly_fields = ['additional_inventory_food', 'terra_luxury_sum', 'consumed_luxury', 'luxury_paid_diff', 'terra_brutto_all_sum', 'terra_food_others_sum', 'terra_brutto_others_sum', 'terra_deposit_sum', 'terra_food_pumpwerk_sum', 'food_expenses_pumpwerk_sum', 'attendance_day_sum', 'corrected_terra_daily_rate']
+    readonly_fields = ['additional_inventory_food', 'terra_luxury_sum', 'luxury_consumed', 'luxury_paid_diff', 'terra_brutto_all_sum', 'terra_food_others_sum', 'terra_brutto_others_sum', 'terra_deposit_sum', 'terra_food_pumpwerk_sum', 'food_expenses_pumpwerk_sum', 'attendance_day_sum', 'corrected_terra_daily_rate']
     actions = [calculate_account]
 
     def inventory_date(self, obj):
