@@ -217,7 +217,7 @@ class Account(models.Model):
         terra_sums = terra_invoices.aggregate(invoice_sum=Sum('invoice_sum'), deposit_sum=Sum('deposit_sum'), luxury_sum=Sum('luxury_sum'), other_sum=Sum('other_sum'))
         self.terra_luxury_sum = terra_sums['luxury_sum']
         self.luxury_consumed = self.terra_luxury_sum - (self.inventory.sum_luxury - previous_inventory.sum_luxury)
-        self.luxury_paid_diff = user_bill_luxury_sum - self.luxury_consumed - self.inventory.sum_cash
+        self.luxury_paid_diff = user_bill_luxury_sum + self.inventory.sum_cash - self.luxury_consumed 
         self.terra_brutto_all_sum = terra_sums['invoice_sum']
         self.terra_deposit_sum = terra_sums['deposit_sum']
         terra_brutto_others_sum = terra_invoices.filter(is_pumpwerk=False).aggregate(invoice_sum=Sum('invoice_sum'))['invoice_sum']
