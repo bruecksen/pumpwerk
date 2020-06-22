@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.conf import settings
 from django.forms import CheckboxSelectMultiple
 
-from pumpwerk.food.models import Bill, UserBill, ExpenseType, Expense, Inventory, TerraInvoice, Payment, Account
+from pumpwerk.food.models import Bill, UserBill, ExpenseType, Expense, Inventory, TerraInvoice, Payment, Account, UserPayback
 from pumpwerk.slackbot.bot import send_message_to_channel
 
 
@@ -91,7 +91,7 @@ admin.site.register(Expense, ExpenseAdmin)
 
 class InventoryAdmin(admin.ModelAdmin):
     date_hierarchy = 'inventory_date'
-    list_display = ('inventory_date',  'sum_inventory', 'sum_cash', 'sum_luxury')
+    list_display = ('inventory_date', 'sum_inventory', 'sum_cash', 'sum_luxury')
 
 admin.site.register(Inventory, InventoryAdmin)
 
@@ -109,7 +109,7 @@ def calculate_account(modeladmin, request, queryset):
 calculate_account.short_description = "Calculate selected Accounts"
 
 class AccountAdmin(admin.ModelAdmin):
-    list_display = ('title', 'inventory_date', 'terra_food_others_sum', 'terra_brutto_all_sum', 'food_expenses_pumpwerk_sum', 'luxury_paid_diff', 'terra_deposit_sum', 'attendance_day_sum', 'corrected_terra_daily_rate')
+    list_display = ('title', 'inventory_date', 'terra_food_others_sum', 'terra_brutto_all_sum', 'food_expenses_pumpwerk_sum', 'luxury_paid_diff', 'terra_deposit_sum', 'attendance_day_sum', 'previous_terra_daily_rate', 'corrected_terra_daily_rate')
     readonly_fields = ['additional_inventory_food', 'terra_luxury_sum', 'luxury_consumed', 'luxury_paid_diff', 'terra_brutto_all_sum', 'terra_food_others_sum', 'terra_brutto_others_sum', 'terra_deposit_sum', 'terra_food_pumpwerk_sum', 'food_expenses_pumpwerk_sum', 'attendance_day_sum', 'corrected_terra_daily_rate']
     actions = [calculate_account]
 
@@ -129,3 +129,10 @@ class TerraInvoiceAdmin(admin.ModelAdmin):
     is_paid.short_description = "Is paid?"
     is_paid.boolean = True
 admin.site.register(TerraInvoice, TerraInvoiceAdmin)
+
+
+class UserPaybackAdmin(admin.ModelAdmin):
+    list_display = ('user', 'account', 'total_days', 'total', 'has_paid')
+    readonly_fields = ['user', 'account', 'total_days', 'total', 'has_paid']
+
+admin.site.register(UserPayback, UserPaybackAdmin)
