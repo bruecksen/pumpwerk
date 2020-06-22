@@ -259,6 +259,7 @@ class UserPayback(models.Model):
     comment = models.TextField(blank=True, null=True)
 
     class Meta:
+        unique_together = ['user', 'account']
         verbose_name = 'User payback'
         verbose_name_plural = 'User paybacks'
         ordering = ['-account__from_month', 'user']
