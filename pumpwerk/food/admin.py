@@ -121,9 +121,13 @@ admin.site.register(Account, AccountAdmin)
 
 
 class TerraInvoiceAdmin(admin.ModelAdmin):
-    list_display = ('terra_invoice_date', 'invoice_number', 'invoice_sum', 'deposit_sum', 'luxury_sum', 'other_sum', 'is_pumpwerk', 'is_paid')
+    list_display = ('terra_invoice_date', 'invoice_number', 'invoice_sum', 'deposit_sum', 'food_sum', 'luxury_sum', 'other_sum', 'is_pumpwerk', 'is_paid')
     # list_filter = ('year', )
 
+    def food_sum(self, obj):
+        return obj.invoice_sum - obj.deposit_sum
+    food_sum.short_description = "Food sum"
+    
     def is_paid(self, obj):
         return obj.payment_set.exists()
     is_paid.short_description = "Is paid?"
