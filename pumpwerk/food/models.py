@@ -237,9 +237,10 @@ class Account(models.Model):
 
         self.save()
 
+        # delete existing UserPaybacks for acccount
+        UserPayback.objects.filter(account=self).delete()
         # create all the UserPayback objects
         user_attendance_days = user_bills.values('user').order_by('user').annotate(sum_attendance_days=Sum('attendance_days'))
-        # raise Exception(user_attendance_days)
         for user_attendance_day in user_attendance_days:
             user = User.objects.get(pk=user_attendance_day['user'])
             user_payback, created = UserPayback.objects.get_or_create(
