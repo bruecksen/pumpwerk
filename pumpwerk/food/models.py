@@ -179,7 +179,7 @@ class Payment(models.Model):
         ordering = ['-payment_date']
 
     def __str__(self):
-        return "Payment: {}".format(self.when)
+        return self.title
 
 
 class Account(models.Model):
