@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.template.defaultfilters import date
 
 import slack
 
@@ -16,7 +17,7 @@ def generate_bill_result_blocks(bill):
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f"*Essensabrechnung: {bill.get_month()} {bill.year}*"
+                        "text": f"*Essensabrechnung: {date(bill.bill_date, 'F Y')}*"
                     }
                 },
                 {

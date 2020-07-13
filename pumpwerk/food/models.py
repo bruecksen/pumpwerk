@@ -42,9 +42,6 @@ class Bill(models.Model):
         self.days_in_month = monthrange(self.bill_date.year, self.bill_date.month)[1]
         super(Bill, self).save(*args, **kwargs)
 
-    def get_month(self):
-        return MONTHS[self.month]
-
     def make_bill_calculation(self):
         user_bills = self.userbill_set.all()
         # calculate totals of month and save in object
