@@ -58,3 +58,5 @@ INTERNAL_IPS = ['127.0.0.1', '10.0.2.2']
 INSTALLED_APPS += ['django_extensions']  # noqa F405
 # Your stuff...
 # ------------------------------------------------------------------------------
+
+SLACK_FOOD_CHANNEL='#test'

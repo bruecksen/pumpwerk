@@ -5,7 +5,7 @@ import slack
 
 
 def get_slack_client():
-    return slack.WebClient(token=settings.SLACK_API_TOKEN, ssl=True)
+    return slack.WebClient(token=settings.SLACK_API_TOKEN)
 
 
 def generate_bill_result_blocks(bill):
