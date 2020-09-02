@@ -126,7 +126,7 @@ class TerraInvoiceAdmin(admin.ModelAdmin):
 
     def food_sum(self, obj):
         return obj.invoice_sum - obj.deposit_sum
-    food_sum.short_description = "Food sum"
+    food_sum.short_description = "Food sum (inv. - dep.)"
     
     def is_paid(self, obj):
         return obj.payment_set.exists()

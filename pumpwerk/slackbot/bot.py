@@ -32,7 +32,7 @@ def generate_bill_result_blocks(bill):
             ]
     fields = []
     fields.append({"type": "mrkdwn", "text":"_User (Anwesenheitstage)_"})
-    fields.append({"type": "mrkdwn", "text":"_Summe (Kredit + Ausgaben - Essen - Invest - Luxus)_"})
+    fields.append({"type": "mrkdwn", "text":"_Zu bezahlen/Guthaben (Kredit + Ausgaben - Essen - Invest - Luxus)_"})
     result.append({
         "type": "section",
         "fields": fields,
@@ -40,7 +40,11 @@ def generate_bill_result_blocks(bill):
     fields = []
     for user_bill in bill.userbill_set.all().order_by('user__username'):
         fields.append({"type": "mrkdwn", "text":f"*{user_bill.user}* ({user_bill.attendance_days:.1f}):"})
-        fields.append({"type": "mrkdwn", "text":f"*{user_bill.total:.2f}* ({user_bill.credit:.2f} + {user_bill.expense_sum:.2f} - {user_bill.food_sum:.2f} - {user_bill.invest_sum:.2f} - {user_bill.luxury_sum:.2f})"})
+        if user_bill.get_user_has_to_pay_amount():
+            fields.append({"type": "mrkdwn", "text":f"Zu bezahlen: *{user_bill.get_user_has_to_pay_amount():.2f}* ({user_bill.credit:.2f} + {user_bill.expense_sum:.2f} - {user_bill.food_sum:.2f} - {user_bill.invest_sum:.2f} - {user_bill.luxury_sum:.2f})"})
+        elif user_bill.get_user_credit():
+            fields.append({"type": "mrkdwn", "text":f"Guthaben: *{user_bill.get_user_credit():.2f}* ({user_bill.credit:.2f} + {user_bill.expense_sum:.2f} - {user_bill.food_sum:.2f} - {user_bill.invest_sum:.2f} - {user_bill.luxury_sum:.2f})"})
+
         result.append({
             "type": "section",
             "fields": fields,

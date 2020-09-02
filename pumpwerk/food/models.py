@@ -104,6 +104,12 @@ class UserBill(models.Model):
     def __str__(self):
         return "%s - %s" % (self.bill, self.user)
 
+    def get_user_has_to_pay_amount(self):
+        return self.total <= 0 and abs(self.total) or None
+    
+    def get_user_credit(self):
+        return self.total > 0 and abs(self.total) or None
+
 
 class ExpenseType(models.Model):
     name = models.CharField(max_length=255)
