@@ -219,7 +219,7 @@ class Account(models.Model):
         terra_invoices = TerraInvoice.objects.filter(terra_invoice_date__gt=previous_inventory.inventory_date, terra_invoice_date__lte=self.inventory.inventory_date)
 
         # make all the calculations
-        self.attendance_day_sum = user_bills.aggregate(attendance_days_sum=Sum('attendance_days'))['attendance_days_sum']
+        self.attendance_day_sum = user_bills.aggregate(attendance_days_sum=Sum(F('attendance_days') * F('user__calculation_factor')))['attendance_days_sum']
         self.additional_inventory_food = (self.inventory.sum_inventory - self.inventory.sum_luxury) - (previous_inventory.sum_inventory - previous_inventory.sum_luxury)
         
         user_bill_luxury_sum = user_bills.aggregate(luxury_sum=Sum('luxury_sum'))['luxury_sum']
@@ -250,7 +250,7 @@ class Account(models.Model):
                 user=user,
                 account=self,
                 total_days=user_attendance_day['sum_attendance_days'],
-                total=user_attendance_day['sum_attendance_days'] * (self.previous_terra_daily_rate - self.corrected_terra_daily_rate),
+                total=user_attendance_day['sum_attendance_days'] * user.calculation_factor * (self.previous_terra_daily_rate - self.corrected_terra_daily_rate),
             )
 
 
