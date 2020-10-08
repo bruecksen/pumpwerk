@@ -139,6 +139,7 @@ class Inventory(models.Model):
     sum_luxury = models.DecimalField(max_digits=8, decimal_places=2)
     comment = models.TextField(blank=True, null=True)
     bills = models.ManyToManyField('Bill', blank=True)
+    inventory = models.ForeignKey('Account', on_delete=models.PROTECT, related_name='inventory_account', null=True, blank=True)
 
     class Meta:
         ordering = ['-inventory_date']
