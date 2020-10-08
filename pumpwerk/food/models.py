@@ -139,7 +139,7 @@ class Inventory(models.Model):
     sum_luxury = models.DecimalField(max_digits=8, decimal_places=2)
     comment = models.TextField(blank=True, null=True)
     bills = models.ManyToManyField('Bill', blank=True)
-    inventory = models.ForeignKey('Account', on_delete=models.PROTECT, related_name='inventory_account', null=True, blank=True)
+    account = models.ForeignKey('Account', on_delete=models.PROTECT, null=True, blank=True, related_name='account_inventory')
 
     class Meta:
         ordering = ['-inventory_date']
@@ -188,7 +188,7 @@ class Payment(models.Model):
 
 class Account(models.Model):
     title = models.CharField(max_length=255)
-    inventory = models.OneToOneField('Inventory', on_delete=models.PROTECT)
+    inventory = models.ForeignKey('Inventory', on_delete=models.PROTECT, null=True, blank=True, related_name='inventory_account')
     additional_inventory_food = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Add. inv. food')
     terra_luxury_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     luxury_consumed = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)

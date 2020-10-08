@@ -114,7 +114,8 @@ class AccountAdmin(admin.ModelAdmin):
     actions = [calculate_account]
 
     def inventory_date(self, obj):
-        return obj.inventory.inventory_date
+        return "0"
+        # return obj.inventory.inventory_date
     inventory_date.short_description = "Date"
 
 admin.site.register(Account, AccountAdmin)
