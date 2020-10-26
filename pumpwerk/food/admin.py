@@ -18,22 +18,11 @@ def calculate_bills(modeladmin, request, queryset):
 calculate_bills.short_description = "Calculate selected Bills"
 
 
-def send_notification(modeladmin, request, queryset):
-    for bill in queryset:
-        bill.make_bill_calculation()
-        if not bill.is_notified:
-            send_message_to_channel(settings.SLACK_FOOD_CHANNEL, bill)
-            bill.is_notified = True
-            bill.save(update_fields=['is_notified'])
-send_notification.short_description = "Send notification of selected Bills"
-
-
-
 class BillAdmin(admin.ModelAdmin):
-    list_display = ('bill_date', 'days_in_month', 'terra_daily_rate', 'member_count', 'total_attendance_days', 'total_supermarket', 'total_invest', 'total_terra', 'total_luxury', 'daily_rate', 'is_notified')
+    list_display = ('bill_date', 'days_in_month', 'terra_daily_rate', 'member_count', 'total_attendance_days', 'total_supermarket', 'total_invest', 'total_terra', 'total_luxury', 'daily_rate')
     date_hierarchy = 'bill_date'
-    readonly_fields = ('total_attendance_days', 'total_supermarket', 'total_terra', 'total_invest', 'total_luxury', 'daily_rate')
-    actions = [calculate_bills, send_notification]
+    readonly_fields = ('total_attendance_days', 'total_supermarket', 'total_terra', 'total_invest', 'total_luxury', 'daily_rate', 'overview')
+    actions = [calculate_bills,]
 
     def member_count(self, obj):
         return obj.members.count()
@@ -54,8 +43,6 @@ class UserBillAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = ('food_sum', 'invest_sum', 'total', 'expense_sum')
-        if obj.bill.is_notified:
-            readonly_fields += ('attendance_days', 'credit', 'luxury_sum', 'calculation_factor',)
         return readonly_fields
 
     def bill_date(self, obj):

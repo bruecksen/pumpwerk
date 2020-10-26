@@ -1,6 +1,7 @@
 from calendar import monthrange
 from datetime import date
 
+from django.template.defaultfilters import date as date_filter
 from django.conf import settings
 from django.db import models
 from django.db.models import F, Sum
@@ -27,8 +28,8 @@ class Bill(models.Model):
     total_terra = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     total_luxury = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     daily_rate = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
-    is_notified = models.BooleanField(default=False)
     comment = models.TextField(blank=True, null=True)
+    overview = models.TextField(blank=True, null=True)
 
 
     class Meta:
@@ -41,6 +42,25 @@ class Bill(models.Model):
     def save(self, *args, **kwargs):
         self.days_in_month = monthrange(self.bill_date.year, self.bill_date.month)[1]
         super(Bill, self).save(*args, **kwargs)
+
+    def generate_bill_overview(self):
+        text = f"### Essensabrechnung: {date_filter(self.bill_date, 'F Y')} \n\n"
+        text += f"Summe Anwesenheitstage: {self.total_attendance_days:.2f}\n"
+        text += f"Summe Terra: {self.total_terra:.2f}€\n"
+        text += f"Summe Supermarkt: {self.total_supermarket:.2f}€\n"
+        text += f"Summe Invest: {self.total_invest:.2f}€\n"
+        text += f"Tagessatz (Terra): {self.daily_rate:.2f} € ({self.terra_daily_rate:.2f}€)\n\n"
+        text += "| Name | Tage | Bezahlen/Guthaben | Kredit + Ausgaben - Essen - Invest - Luxus |\n"
+        text += "| :------------ |:---------------|:-----|:---------|\n"
+        for user_bill in self.userbill_set.all().order_by('user__username'):
+            text += f"| **{user_bill.user}** | {user_bill.attendance_days:.1f} | "
+            if user_bill.get_user_has_to_pay_amount():
+                text += f"Zu bezahlen: **{user_bill.get_user_has_to_pay_amount():.2f}€** | {user_bill.credit:.2f} + {user_bill.expense_sum:.2f} - {user_bill.food_sum:.2f} - {user_bill.invest_sum:.2f} - {user_bill.luxury_sum:.2f} |\n"
+            elif user_bill.get_user_credit():
+                text += f"Guthaben: {user_bill.get_user_credit():.2f}€ | {user_bill.credit:.2f} + {user_bill.expense_sum:.2f} - {user_bill.food_sum:.2f} - {user_bill.invest_sum:.2f} - {user_bill.luxury_sum:.2f} |\n"
+        
+        return text              
+
 
     def make_bill_calculation(self):
         user_bills = self.userbill_set.all()
@@ -79,6 +99,8 @@ class Bill(models.Model):
             user_bill.total = user_bill.credit + user_expense_food + user_expense_invest - user_bill.food_sum - user_bill.invest_sum - user_bill.luxury_sum
             user_bill.expense_sum = user_expense_food + user_expense_invest
             user_bill.save()
+        self.overview = self.generate_bill_overview()
+        self.save(update_fields=['overview'])
 
 
 class UserBill(models.Model):
