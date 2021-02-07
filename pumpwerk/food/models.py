@@ -156,7 +156,7 @@ class Expense(models.Model):
 
 class Inventory(models.Model):
     inventory_date = models.DateField(default=date.today)
-    sum_inventory = models.DecimalField(max_digits=8, decimal_places=2)
+    sum_inventory = models.DecimalField(max_digits=8, decimal_places=2, help_text="incl. luxury")
     sum_cash = models.DecimalField(max_digits=8, decimal_places=2)
     sum_luxury = models.DecimalField(max_digits=8, decimal_places=2)
     comment = models.TextField(blank=True, null=True)
