@@ -28,6 +28,8 @@ class Bill(models.Model):
     total_terra = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     total_luxury = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     daily_rate = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    account_carry_over = models.OneToOneField('Account', blank=True, null=True, on_delete=models.SET_NULL)
+    bill_carry_over = models.OneToOneField('Bill', blank=True, null=True, on_delete=models.SET_NULL)
     comment = models.TextField(blank=True, null=True)
     overview = models.TextField(blank=True, null=True)
 
