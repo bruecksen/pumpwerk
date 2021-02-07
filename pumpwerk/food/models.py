@@ -1,5 +1,6 @@
 from calendar import monthrange
 from datetime import date
+from decimal import Decimal
 
 from django.template.defaultfilters import date as date_filter
 from django.conf import settings
@@ -181,7 +182,9 @@ class TerraInvoice(models.Model):
     invoice_number = models.CharField(max_length=255, blank=True, null=True)
     invoice_sum = models.DecimalField(max_digits=8, decimal_places=2)
     deposit_sum = models.DecimalField(max_digits=8, decimal_places=2)
-    luxury_sum = models.DecimalField(max_digits=8, decimal_places=2)
+    luxury_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    luxury_sum_7 = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    luxury_sum_19 = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     other_sum = models.DecimalField(max_digits=8, decimal_places=2, default=0, help_text="Other extraordinary sum wich should not be included in the terra factor.")
     is_pumpwerk = models.BooleanField(default=True, verbose_name='Is pumpwerk order?')
 
@@ -192,6 +195,11 @@ class TerraInvoice(models.Model):
 
     def __str__(self):
         return "Terra Invoice: {} {}".format(self.invoice_number, self.terra_invoice_date)
+
+    def save(self, *args, **kwargs):
+        if not self.luxury_sum:
+            self.luxury_sum = (self.luxury_sum_7 * Decimal(1.07)) + (self.luxury_sum_19 * Decimal(1.19))
+        super().save(*args, **kwargs)
 
 
 class Payment(models.Model):
