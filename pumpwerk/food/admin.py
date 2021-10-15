@@ -33,8 +33,9 @@ admin.site.register(Bill, BillAdmin)
 class UserBillAdmin(admin.ModelAdmin):
     list_display = ('bill_date', 'user', 'total', 'attendance_days', 'credit', 'luxury_sum', 'expense_sum', 'food_sum', 'invest_sum', 'has_paid')
     date_hierarchy = 'bill__bill_date'
+    readonly_fields = ('credit',)
     list_filter = ('user',)
-    list_editable = ('attendance_days', 'credit', 'luxury_sum', 'has_paid')
+    list_editable = ('attendance_days', 'luxury_sum', 'has_paid')
     formfield_overrides = {
         models.ManyToManyField: {'widget': CheckboxSelectMultiple},
     }

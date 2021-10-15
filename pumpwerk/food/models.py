@@ -92,6 +92,15 @@ class Bill(models.Model):
         invest_share = self.total_invest / user_bills.filter(expense_types__in=invest_expense_types).aggregate(user_count=Sum('calculation_factor'))['user_count']
         # calculate user Food sum
         for user_bill in user_bills:
+            user_credit = 0
+            if self.account_carry_over and UserPayback.objects.filter(user=user_bill.user, account=self.account_carry_over).exists():
+                # carry over positive and negative userpayback total
+                user_credit += UserPayback.objects.get(user=user_bill.user, account=self.account_carry_over).total
+            if self.bill_carry_over and UserBill.objects.filter(user=user_bill.user, bill=self.bill_carry_over).exists():
+                last_user_bill = UserBill.objects.get(user=user_bill.user, bill=self.bill_carry_over)
+                if last_user_bill.get_user_credit():
+                    user_credit += last_user_bill.get_user_credit()
+            user_bill.credit = user_credit
             user_bill.food_sum = user_bill.calculation_factor * user_bill.attendance_days * user_bill.bill.daily_rate
             if user_bill.expense_types.filter(is_invest=True).exists():
                 user_bill.invest_sum = invest_share * user_bill.calculation_factor
