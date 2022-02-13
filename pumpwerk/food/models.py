@@ -196,6 +196,7 @@ class TerraInvoice(models.Model):
     luxury_sum_19 = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     other_sum = models.DecimalField(max_digits=8, decimal_places=2, default=0, help_text="Other extraordinary sum wich should not be included in the terra factor.")
     is_pumpwerk = models.BooleanField(default=True, verbose_name='Is pumpwerk order?')
+    fee = models.PositiveSmallIntegerField(blank=True, null=True, verbose_name='Additional fee', default=1, help_text="Fee in percentage, e.g. 1 for 1% or 2 for 2%.")
 
     class Meta:
         verbose_name = 'Terra Invoice'
@@ -235,6 +236,7 @@ class Account(models.Model):
     luxury_paid_diff = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Lux paid diff')
     terra_brutto_all_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, help_text="Sum of all brutto terra invoice totals", verbose_name='Tot. Terra brutto (all)')
     terra_food_others_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Tot. food (others)')
+    terra_food_others_fee_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Tot. food (others) + fee')
     terra_brutto_others_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, help_text="Sum of all terra invoices without deposit and not from pumpwerk")
     terra_deposit_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Deposit sum')
     terra_food_pumpwerk_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
@@ -271,9 +273,11 @@ class Account(models.Model):
         self.terra_brutto_all_sum = terra_sums['invoice_sum']
         self.terra_deposit_sum = terra_sums['deposit_sum']
 
-        terra_brutto_others_sum = terra_invoices.filter(is_pumpwerk=False).aggregate(invoice_sum=Sum('invoice_sum'))['invoice_sum']
-        other_invoice_deposit_sum = terra_invoices.filter(is_pumpwerk=False).aggregate(deposit_sum=Sum('deposit_sum'))['deposit_sum']
-        self.terra_food_others_sum = terra_brutto_others_sum - other_invoice_deposit_sum
+        terra_brutto_others_sum = terra_invoices.filter(is_pumpwerk=False).aggregate(invoice_total=Sum(F('invoice_sum') - F('deposit_sum')))['invoice_total']
+        terra_brutto_others_fee_sum = terra_invoices.filter(is_pumpwerk=False).aggregate(invoice_total=Sum((F('invoice_sum') - F('deposit_sum')) * (1.0 + F('fee') / 100.0), output_field=models.DecimalField()))['invoice_total']
+        # other_invoice_deposit_sum = terra_invoices.filter(is_pumpwerk=False).aggregate(deposit_sum=Sum('deposit_sum'))['deposit_sum']
+        self.terra_food_others_fee_sum = terra_brutto_others_fee_sum
+        self.terra_food_others_sum = terra_brutto_others_sum
         self.terra_brutto_others_sum = terra_brutto_others_sum
         self.terra_food_pumpwerk_sum = self.terra_brutto_all_sum - self.terra_food_others_sum - self.terra_luxury_sum - self.terra_deposit_sum
         self.food_expenses_pumpwerk_sum = self.terra_food_pumpwerk_sum - self.additional_inventory_food
