@@ -97,8 +97,8 @@ def calculate_account(modeladmin, request, queryset):
 calculate_account.short_description = "Calculate selected Accounts"
 
 class AccountAdmin(admin.ModelAdmin):
-    list_display = ('title', 'inventory_date', 'terra_food_others_sum', 'terra_food_others_fee_sum', 'terra_brutto_all_sum', 'food_expenses_pumpwerk_sum', 'luxury_paid_diff', 'terra_deposit_sum', 'attendance_day_sum', 'previous_terra_daily_rate', 'corrected_terra_daily_rate')
-    readonly_fields = ['additional_inventory_food', 'terra_luxury_sum', 'luxury_consumed', 'luxury_paid_diff', 'terra_brutto_all_sum', 'terra_food_others_sum', 'terra_brutto_others_sum', 'terra_deposit_sum', 'terra_food_pumpwerk_sum', 'food_expenses_pumpwerk_sum', 'attendance_day_sum', 'corrected_terra_daily_rate']
+    list_display = ('title', 'inventory_date', 'terra_food_others_sum', 'terra_food_others_fee_sum', 'terra_brutto_all_sum', 'food_expenses_pumpwerk_sum', 'terra_food_pumpwerk_fee', 'luxury_paid_diff', 'terra_deposit_sum', 'attendance_day_sum', 'previous_terra_daily_rate', 'corrected_terra_daily_rate')
+    readonly_fields = ['additional_inventory_food', 'terra_luxury_sum', 'luxury_consumed', 'luxury_paid_diff', 'terra_brutto_all_sum', 'terra_food_others_sum', 'terra_food_pumpwerk_fee', 'terra_brutto_others_sum', 'terra_deposit_sum', 'terra_food_pumpwerk_sum', 'food_expenses_pumpwerk_sum', 'attendance_day_sum', 'corrected_terra_daily_rate']
     actions = [calculate_account]
 
     def inventory_date(self, obj):
@@ -109,13 +109,13 @@ admin.site.register(Account, AccountAdmin)
 
 
 class TerraInvoiceAdmin(admin.ModelAdmin):
-    list_display = ('terra_invoice_date', 'invoice_number', 'invoice_sum', 'deposit_sum', 'food_sum', 'luxury_sum', 'other_sum', 'is_pumpwerk', 'fee', 'is_paid')
+    list_display = ('terra_invoice_date', 'invoice_number', 'invoice_sum', 'invoice_sum_plus_fee', 'deposit_sum', 'food_sum', 'luxury_sum', 'other_sum', 'is_pumpwerk', 'fee', 'is_paid')
     # list_filter = ('year', )
 
     def food_sum(self, obj):
         return obj.invoice_sum - obj.deposit_sum
     food_sum.short_description = "Food sum (inv. - dep.)"
-    
+
     def is_paid(self, obj):
         return obj.payment_set.exists()
     is_paid.short_description = "Is paid?"

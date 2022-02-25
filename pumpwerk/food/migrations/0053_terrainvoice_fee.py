@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='terrainvoice',
             name='fee',
-            field=models.PositiveSmallIntegerField(blank=True, null=True, verbose_name='Additional fee'),
+            field=models.PositiveSmallIntegerField(blank=True, default=0, null=True, verbose_name='Additional fee'),
         ),
     ]

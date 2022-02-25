@@ -207,9 +207,16 @@ class TerraInvoice(models.Model):
         return "Terra Invoice: {} {}".format(self.invoice_number, self.terra_invoice_date)
 
     def save(self, *args, **kwargs):
-        if not self.luxury_sum:
+        if not self.luxury_sum and self.luxury_sum_7 and self.luxury_sum_19:
             self.luxury_sum = (self.luxury_sum_7 * Decimal(1.07)) + (self.luxury_sum_19 * Decimal(1.19))
         super().save(*args, **kwargs)
+
+    @property
+    def invoice_sum_plus_fee(self):
+        if self.fee:
+            return (self.invoice_sum * (Decimal(1.0) + self.fee / Decimal(100.0))).quantize(Decimal('0.01'))
+        else:
+            return self.invoice_sum
 
 
 class Payment(models.Model):
@@ -240,10 +247,11 @@ class Account(models.Model):
     terra_brutto_others_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, help_text="Sum of all terra invoices without deposit and not from pumpwerk")
     terra_deposit_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Deposit sum')
     terra_food_pumpwerk_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    terra_food_pumpwerk_fee = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Fee food (PW)')
     food_expenses_pumpwerk_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Tot. food (PW)')
     attendance_day_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Tot. days')
     previous_terra_daily_rate = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Prev. Terra rate')
-    corrected_terra_daily_rate = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='New Terra rate')
+    corrected_terra_daily_rate = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='New Terra rate (+Fee)')
     
     comment = models.TextField(blank=True, null=True)
 
@@ -279,9 +287,12 @@ class Account(models.Model):
         self.terra_food_others_fee_sum = terra_brutto_others_fee_sum
         self.terra_food_others_sum = terra_brutto_others_sum
         self.terra_brutto_others_sum = terra_brutto_others_sum
-        self.terra_food_pumpwerk_sum = self.terra_brutto_all_sum - self.terra_food_others_sum - self.terra_luxury_sum - self.terra_deposit_sum
+        terra_food_pumpwerk_sum = terra_invoices.filter(is_pumpwerk=True).aggregate(invoice_total=Sum(F('invoice_sum') - F('deposit_sum') - F('luxury_sum')))['invoice_total']
+        terra_food_pumpwerk_fee = terra_invoices.filter(is_pumpwerk=True).aggregate(invoice_total=Sum((F('invoice_sum') - F('deposit_sum') - F('luxury_sum')) * ( F('fee') / 100.0), output_field=models.DecimalField()))['invoice_total']
+        self.terra_food_pumpwerk_sum = terra_food_pumpwerk_sum
+        self.terra_food_pumpwerk_fee = terra_food_pumpwerk_fee
         self.food_expenses_pumpwerk_sum = self.terra_food_pumpwerk_sum - self.additional_inventory_food
-        self.corrected_terra_daily_rate = self.food_expenses_pumpwerk_sum / self.attendance_day_sum
+        self.corrected_terra_daily_rate = (self.food_expenses_pumpwerk_sum + self.terra_food_pumpwerk_fee) / self.attendance_day_sum
 
         self.save()
 
