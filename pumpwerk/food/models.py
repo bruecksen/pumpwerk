@@ -214,7 +214,7 @@ class TerraInvoice(models.Model):
     @property
     def invoice_sum_plus_fee(self):
         if self.fee:
-            return ((self.invoice_sum - self.deposit_sum - self.luxury_sum) * (Decimal(1.0) + self.fee / Decimal(100.0))).quantize(Decimal('0.01'))
+            return ((self.invoice_sum - self.deposit_sum or 0 - self.luxury_sum or 0) * (Decimal(1.0) + self.fee / Decimal(100.0))).quantize(Decimal('0.01'))
         else:
             return self.invoice_sum
 
