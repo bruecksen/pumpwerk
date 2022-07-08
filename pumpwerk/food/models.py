@@ -207,7 +207,7 @@ class TerraInvoice(models.Model):
         return "Terra Invoice: {} {}".format(self.invoice_number, self.terra_invoice_date)
 
     def save(self, *args, **kwargs):
-        if not self.luxury_sum and self.luxury_sum_7 and self.luxury_sum_19:
+        if not self.luxury_sum and (self.luxury_sum_7 or self.luxury_sum_19):
             self.luxury_sum = (self.luxury_sum_7 * Decimal(1.07)) + (self.luxury_sum_19 * Decimal(1.19))
         super().save(*args, **kwargs)
 
