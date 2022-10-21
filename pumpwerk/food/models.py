@@ -214,7 +214,7 @@ class TerraInvoice(models.Model):
     @property
     def invoice_sum_plus_fee(self):
         if self.fee:
-            return ((self.invoice_sum - self.deposit_sum or 0 - self.luxury_sum or 0) * (Decimal(1.0) + self.fee / Decimal(100.0))).quantize(Decimal('0.01'))
+            return ((self.invoice_sum - (self.deposit_sum or 0) - (self.luxury_sum or 0)) * (Decimal(1.0) + self.fee / Decimal(100.0))).quantize(Decimal('0.01'))
         else:
             return self.invoice_sum
 
@@ -258,7 +258,7 @@ class Account(models.Model):
     class Meta:
         verbose_name = 'Account'
         verbose_name_plural = 'Accounts'
-        ordering = ['-inventory__created']
+        ordering = ['-inventory__inventory_date']
 
     def __str__(self):
         return "Account: {}".format(self.title)
@@ -277,6 +277,7 @@ class Account(models.Model):
         terra_sums = terra_invoices.aggregate(invoice_sum=Sum('invoice_sum'), deposit_sum=Sum('deposit_sum'), luxury_sum=Sum('luxury_sum'), other_sum=Sum('other_sum'))
         self.terra_luxury_sum = terra_sums['luxury_sum']
         self.luxury_consumed = self.terra_luxury_sum - (self.inventory.sum_luxury - previous_inventory.sum_luxury)
+        raise Exception(user_bill_luxury_sum, self.inventory.sum_cash, self.luxury_consumed )
         self.luxury_paid_diff = user_bill_luxury_sum + self.inventory.sum_cash - self.luxury_consumed 
         self.terra_brutto_all_sum = terra_sums['invoice_sum']
         self.terra_deposit_sum = terra_sums['deposit_sum']
@@ -322,7 +323,7 @@ class UserPayback(models.Model):
         unique_together = ['user', 'account']
         verbose_name = 'User payback'
         verbose_name_plural = 'User paybacks'
-        ordering = ['-account__from_month', 'user']
+        ordering = ['-account', 'user']
 
     def __str__(self):
         return "User payback: {}".format(self.account.title)
