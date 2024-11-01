@@ -20,7 +20,7 @@ User = get_user_model()
 class Bill(models.Model):
     bill_date = models.DateField(blank=True, null=True)
     days_in_month = models.PositiveIntegerField(editable=False, verbose_name='Days/Mo')
-    members = models.ManyToManyField(settings.AUTH_USER_MODEL)
+    members = models.ManyToManyField(settings.AUTH_USER_MODEL, limit_choices_to={'is_active': True})
     expense_types = models.ManyToManyField('ExpenseType')
     terra_daily_rate = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Terra Rate')
     luxury_rate = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Luxury Rate', help_text="Preis pro Strich")
