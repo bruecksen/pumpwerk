@@ -23,7 +23,7 @@ class Bill(models.Model):
     members = models.ManyToManyField(settings.AUTH_USER_MODEL)
     expense_types = models.ManyToManyField('ExpenseType')
     terra_daily_rate = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Terra Rate')
-    luxury_rate = models.DecimalField(max_digits=8, decimal_places=2, default=1, verbose_name='Luxury Rate', help_text="Preis pro Strich")
+    luxury_rate = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Luxury Rate', help_text="Preis pro Strich")
     total_attendance_days = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, verbose_name='Total Days')
     total_supermarket = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     total_invest = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
