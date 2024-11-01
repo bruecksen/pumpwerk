@@ -141,7 +141,7 @@ class UserBill(models.Model):
         return "%s - %s" % (self.bill, self.user)
     
     def save(self, *args, **kwargs):
-        if self.luxury_count and not self.luxury_sum:
+        if self.luxury_count is not None:
             self.luxury_sum = self.luxury_count * self.bill.luxury_rate
         super().save(*args, **kwargs)
 
