@@ -125,7 +125,7 @@ class UserBill(models.Model):
     credit = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     food_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     luxury_count = models.PositiveIntegerField(null=True, blank=True, help_text="Anzahl der Luxusstriche")
-    luxury_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0, verbose_name='Luxury')
+    luxury_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0, verbose_name='Luxury sum', help_text="Anzahl der Luxusstriche * Preis pro Strich")
     invest_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     expense_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     total = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
