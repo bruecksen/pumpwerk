@@ -23,6 +23,7 @@ class Bill(models.Model):
     members = models.ManyToManyField(settings.AUTH_USER_MODEL)
     expense_types = models.ManyToManyField('ExpenseType')
     terra_daily_rate = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Terra Rate')
+    luxury_rate = models.DecimalField(max_digits=8, decimal_places=2, default=1, verbose_name='Luxury Rate', help_text="Preis pro Strich")
     total_attendance_days = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, verbose_name='Total Days')
     total_supermarket = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     total_invest = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
@@ -123,7 +124,8 @@ class UserBill(models.Model):
     attendance_days = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, verbose_name='Attend. days')
     credit = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     food_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
-    luxury_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
+    luxury_count = models.PositiveIntegerField(null=True, blank=True, help_text="Anzahl der Luxusstriche")
+    luxury_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0, verbose_name='Luxury')
     invest_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     expense_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     total = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
@@ -137,6 +139,11 @@ class UserBill(models.Model):
 
     def __str__(self):
         return "%s - %s" % (self.bill, self.user)
+    
+    def save(self, *args, **kwargs):
+        if self.luxury_count and not self.luxury_sum:
+            self.luxury_sum = self.luxury_count * self.bill.luxury_rate
+        super().save(*args, **kwargs)
 
     def get_user_has_to_pay_amount(self):
         return self.total <= 0 and abs(self.total) or None
