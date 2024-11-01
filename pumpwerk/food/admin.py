@@ -31,7 +31,7 @@ class BillAdmin(admin.ModelAdmin):
 admin.site.register(Bill, BillAdmin)
 
 class UserBillAdmin(admin.ModelAdmin):
-    list_display = ('bill_date', 'user', 'total', 'attendance_days', 'credit', 'luxury_sum', 'expense_sum', 'food_sum', 'invest_sum', 'has_paid')
+    list_display = ('bill_date', 'user', 'total', 'attendance_days', 'credit', 'luxury_count', 'luxury_sum', 'expense_sum', 'food_sum', 'invest_sum', 'has_paid')
     date_hierarchy = 'bill__bill_date'
     readonly_fields = ('credit', 'luxury_sum')
     list_filter = ('user',)
