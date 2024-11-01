@@ -237,11 +237,12 @@ class Payment(models.Model):
 class Account(models.Model):
     title = models.CharField(max_length=255)
     inventory = models.ForeignKey('Inventory', on_delete=models.PROTECT, null=True, blank=True, related_name='account')
-    additional_inventory_food = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Add. inv. food')
-    additional_inventory_luxury = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Add. inv. luxury')
-    terra_luxury_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
-    luxury_consumed = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
-    luxury_paid_diff = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Lux paid diff')
+    additional_inventory_food = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Add. inv. food', help_text="(self.inventory.sum_inventory - self.inventory.sum_luxury) - (previous_inventory.sum_inventory - previous_inventory.sum_luxury)")
+    additional_inventory_luxury = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Add. inv. luxury', help_text="self.inventory.sum_luxury - previous_inventory.sum_luxury")
+    terra_luxury_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, help_text=" terra_sums['luxury_sum'] #total luxury from terra invoices")
+    luxury_consumed = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, help_text="self.terra_luxury_sum - self.additional_inventory_luxury")
+    luxury_paid_diff = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Lux paid diff', help_text="user_bill_luxury_sum + self.inventory.sum_cash - self.luxury_consumed")
+    user_bill_luxury_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='User bill luxury sum')
     terra_brutto_all_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, help_text="Sum of all brutto terra invoice totals", verbose_name='Tot. Terra brutto (all)')
     terra_food_others_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Tot. food (others)')
     terra_food_others_fee_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Tot. food (others) + fee')
@@ -276,10 +277,12 @@ class Account(models.Model):
         self.additional_inventory_luxury = self.inventory.sum_luxury - previous_inventory.sum_luxury
         
         user_bill_luxury_sum = user_bills.aggregate(luxury_sum=Sum('luxury_sum'))['luxury_sum']
+        self.user_bill_luxury_sum = user_bill_luxury_sum
         terra_sums = terra_invoices.aggregate(invoice_sum=Sum('invoice_sum'), deposit_sum=Sum('deposit_sum'), luxury_sum=Sum('luxury_sum'), other_sum=Sum('other_sum'))
-        self.terra_luxury_sum = terra_sums['luxury_sum']
+        self.terra_luxury_sum = terra_sums['luxury_sum'] #total luxury from terra invoices
         self.luxury_consumed = self.terra_luxury_sum - self.additional_inventory_luxury
-        self.luxury_paid_diff = user_bill_luxury_sum + self.inventory.sum_cash - self.luxury_consumed 
+
+        self.luxury_paid_diff = self.user_bill_luxury_sum + self.inventory.sum_cash - self.luxury_consumed 
         self.terra_brutto_all_sum = terra_sums['invoice_sum']
         self.terra_deposit_sum = terra_sums['deposit_sum']
 
