@@ -238,6 +238,7 @@ class Account(models.Model):
     title = models.CharField(max_length=255)
     inventory = models.ForeignKey('Inventory', on_delete=models.PROTECT, null=True, blank=True, related_name='account')
     additional_inventory_food = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Add. inv. food')
+    additional_inventory_luxury = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Add. inv. luxury')
     terra_luxury_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     luxury_consumed = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     luxury_paid_diff = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Lux paid diff')
@@ -272,11 +273,12 @@ class Account(models.Model):
         # make all the calculations
         self.attendance_day_sum = user_bills.aggregate(attendance_days_sum=Sum(F('attendance_days') * F('user__calculation_factor')))['attendance_days_sum']
         self.additional_inventory_food = (self.inventory.sum_inventory - self.inventory.sum_luxury) - (previous_inventory.sum_inventory - previous_inventory.sum_luxury)
+        self.additional_inventory_luxury = self.inventory.sum_luxury - previous_inventory.sum_luxury
         
         user_bill_luxury_sum = user_bills.aggregate(luxury_sum=Sum('luxury_sum'))['luxury_sum']
         terra_sums = terra_invoices.aggregate(invoice_sum=Sum('invoice_sum'), deposit_sum=Sum('deposit_sum'), luxury_sum=Sum('luxury_sum'), other_sum=Sum('other_sum'))
         self.terra_luxury_sum = terra_sums['luxury_sum']
-        self.luxury_consumed = self.terra_luxury_sum - (self.inventory.sum_luxury - previous_inventory.sum_luxury)
+        self.luxury_consumed = self.terra_luxury_sum - self.additional_inventory_luxury
         self.luxury_paid_diff = user_bill_luxury_sum + self.inventory.sum_cash - self.luxury_consumed 
         self.terra_brutto_all_sum = terra_sums['invoice_sum']
         self.terra_deposit_sum = terra_sums['deposit_sum']
