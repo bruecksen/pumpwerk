@@ -110,6 +110,7 @@ admin.site.register(Account, AccountAdmin)
 
 class TerraInvoiceAdmin(admin.ModelAdmin):
     list_display = ('terra_invoice_date', 'invoice_number', 'invoice_sum', 'invoice_sum_plus_fee', 'deposit_sum', 'food_sum', 'luxury_sum', 'other_sum', 'is_pumpwerk', 'fee', 'is_paid')
+    readonly_fields = ['luxury_sum']
     # list_filter = ('year', )
 
     def food_sum(self, obj):
