@@ -311,7 +311,7 @@ class Account(models.Model):
         # delete existing UserPaybacks for acccount
         UserPayback.objects.filter(account=self).delete()
         # create all the UserPayback objects
-        user_attendance_days = user_bills.values('user').order_by('user').annotate(sum_attendance_days=Sum('attendance_days'))
+        user_attendance_days = user_bills.values('user').order_by('user').annotate(sum_attendance_days=Sum('attendance_days'), sum_luxury_count=Sum('luxury_count'))
         for user_attendance_day in user_attendance_days:
             user = User.objects.get(pk=user_attendance_day['user'])
             user_payback, created = UserPayback.objects.get_or_create(
@@ -319,6 +319,7 @@ class Account(models.Model):
                 account=self,
                 total_days=user_attendance_day['sum_attendance_days'],
                 total=user_attendance_day['sum_attendance_days'] * user.calculation_factor * (self.previous_terra_daily_rate - self.corrected_terra_daily_rate),
+                total_luxury_count=user_attendance_day['sum_luxury_count']
             )
 
 
@@ -327,6 +328,7 @@ class UserPayback(models.Model):
     account = models.ForeignKey('Account', on_delete=models.PROTECT)
     total_days = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     total = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    total_luxury_count = models.PositiveIntegerField(null=True, blank=True, help_text="Summe der Luxusstriche")
     has_paid = models.BooleanField(default=False, verbose_name='Paid?')
     comment = models.TextField(blank=True, null=True)
 

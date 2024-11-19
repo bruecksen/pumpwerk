@@ -125,8 +125,8 @@ admin.site.register(TerraInvoice, TerraInvoiceAdmin)
 
 
 class UserPaybackAdmin(admin.ModelAdmin):
-    list_display = ('account', 'user', 'total_days', 'total', 'has_paid')
-    readonly_fields = ['user', 'account', 'total_days', 'total', 'has_paid']
+    list_display = ('account', 'user', 'total_days', 'total', 'total_luxury_count', 'has_paid')
+    readonly_fields = ['user', 'account', 'total_days', 'total', 'has_paid', 'total_luxury_count']
     list_filter = ('account',)
 
 admin.site.register(UserPayback, UserPaybackAdmin)

@@ -4,7 +4,8 @@ pip # get rid of annoying pip messages
 # ------------------------------------------------------------------------------
 django>=2.2,<2.3 # https://www.djangoproject.com/
 django-environ==0.4.5  # https://github.com/joke2k/django-environ
-argon2-cffi==18.1.0  # https://github.com/hynek/argon2_cffi
+argon2-cffi==21.2.0  # https://github.com/hynek/argon2_cffi
 django-solo
 slackclient
-psycopg2-binary
+psycopg2-binary==2.8.6
+psycopg2==2.8.6
