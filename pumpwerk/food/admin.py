@@ -31,11 +31,11 @@ class BillAdmin(admin.ModelAdmin):
 admin.site.register(Bill, BillAdmin)
 
 class UserBillAdmin(admin.ModelAdmin):
-    list_display = ('bill_date', 'user', 'total', 'attendance_days', 'credit', 'luxury_count', 'luxury_sum', 'expense_sum', 'food_sum', 'invest_sum', 'has_paid')
+    list_display = ('bill_date', 'user', 'total', 'attendance_days', 'credit', 'luxury_sum', 'expense_sum', 'food_sum', 'invest_sum', 'has_paid')
     date_hierarchy = 'bill__bill_date'
-    readonly_fields = ('credit', 'luxury_sum')
+    readonly_fields = ('credit',)
     list_filter = ('user',)
-    list_editable = ('attendance_days', 'luxury_count', 'has_paid')
+    list_editable = ('attendance_days', 'luxury_sum', 'has_paid')
     formfield_overrides = {
         models.ManyToManyField: {'widget': CheckboxSelectMultiple},
     }
@@ -125,8 +125,8 @@ admin.site.register(TerraInvoice, TerraInvoiceAdmin)
 
 
 class UserPaybackAdmin(admin.ModelAdmin):
-    list_display = ('account', 'user', 'total_days', 'total', 'total_luxury_count', 'has_paid')
-    readonly_fields = ['user', 'account', 'total_days', 'total', 'has_paid', 'total_luxury_count']
+    list_display = ('account', 'user', 'total_days', 'total', 'total_luxury_sum', 'has_paid')
+    readonly_fields = ['user', 'account', 'total_days', 'total', 'has_paid', 'total_luxury_sum']
     list_filter = ('account',)
 
 admin.site.register(UserPayback, UserPaybackAdmin)

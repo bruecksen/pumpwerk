@@ -23,7 +23,6 @@ class Bill(models.Model):
     members = models.ManyToManyField(settings.AUTH_USER_MODEL, limit_choices_to={'is_active': True})
     expense_types = models.ManyToManyField('ExpenseType')
     terra_daily_rate = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Terra Rate')
-    luxury_rate = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Luxury Rate', help_text="Preis pro Strich")
     total_attendance_days = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, verbose_name='Total Days')
     total_supermarket = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     total_invest = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
@@ -124,7 +123,6 @@ class UserBill(models.Model):
     attendance_days = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, verbose_name='Attend. days')
     credit = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     food_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
-    luxury_count = models.PositiveIntegerField(null=True, blank=True, help_text="Anzahl der Luxusstriche")
     luxury_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0, verbose_name='Luxury sum', help_text="Anzahl der Luxusstriche * Preis pro Strich")
     invest_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
     expense_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, default=0)
@@ -141,8 +139,6 @@ class UserBill(models.Model):
         return "%s - %s" % (self.bill, self.user)
     
     def save(self, *args, **kwargs):
-        if self.luxury_count is not None:
-            self.luxury_sum = self.luxury_count * self.bill.luxury_rate
         super().save(*args, **kwargs)
 
     def get_user_has_to_pay_amount(self):
@@ -311,7 +307,7 @@ class Account(models.Model):
         # delete existing UserPaybacks for acccount
         UserPayback.objects.filter(account=self).delete()
         # create all the UserPayback objects
-        user_attendance_days = user_bills.values('user').order_by('user').annotate(sum_attendance_days=Sum('attendance_days'), sum_luxury_count=Sum('luxury_count'))
+        user_attendance_days = user_bills.values('user').order_by('user').annotate(sum_attendance_days=Sum('attendance_days'), sum_luxury=Sum('luxury_sum'))
         for user_attendance_day in user_attendance_days:
             user = User.objects.get(pk=user_attendance_day['user'])
             user_payback, created = UserPayback.objects.get_or_create(
@@ -319,7 +315,7 @@ class Account(models.Model):
                 account=self,
                 total_days=user_attendance_day['sum_attendance_days'],
                 total=user_attendance_day['sum_attendance_days'] * user.calculation_factor * (self.previous_terra_daily_rate - self.corrected_terra_daily_rate),
-                total_luxury_count=user_attendance_day['sum_luxury_count']
+                total_luxury_sum=user_attendance_day['sum_luxury']
             )
 
 
@@ -328,7 +324,7 @@ class UserPayback(models.Model):
     account = models.ForeignKey('Account', on_delete=models.PROTECT)
     total_days = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     total = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
-    total_luxury_count = models.PositiveIntegerField(null=True, blank=True, help_text="Summe der Luxusstriche")
+    total_luxury_sum = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, help_text="Summe Luxus")
     has_paid = models.BooleanField(default=False, verbose_name='Paid?')
     comment = models.TextField(blank=True, null=True)
 
