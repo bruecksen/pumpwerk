@@ -88,7 +88,7 @@ class Bill(models.Model):
         self.total_invest = total_invest
         self.total_luxury = total_luxury
         self.daily_rate = (self.total_supermarket + self.total_terra) / self.total_attendance_days
-        self.transfer_sum_from_totals = self.total_supermarket + self.total_terra + self.total_invest + self.total_luxury
+        self.transfer_sum_from_totals = self.total_terra + self.total_luxury
         self.save()
 
         # calculate the share per user for the invest sum, respecting the calculation rate
