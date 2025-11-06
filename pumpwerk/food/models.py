@@ -305,8 +305,8 @@ class Account(models.Model):
         self.terra_food_others_fee_sum = terra_brutto_others_fee_sum
         self.terra_food_others_sum = terra_brutto_others_sum
         self.terra_brutto_others_sum = terra_brutto_others_sum
-        terra_food_pumpwerk_sum = terra_invoices.filter(is_pumpwerk=True).aggregate(invoice_total=Sum(F('invoice_sum') - F('deposit_sum') - F('luxury_sum')))['invoice_total']
-        terra_food_pumpwerk_fee = terra_invoices.filter(is_pumpwerk=True).aggregate(invoice_total=Sum((F('invoice_sum') - F('deposit_sum') - F('luxury_sum')) * ( F('fee') / 100.0), output_field=models.DecimalField()))['invoice_total']
+        terra_food_pumpwerk_sum = terra_invoices.filter(is_pumpwerk=True).aggregate(invoice_total=Sum(F('invoice_sum') - F('deposit_sum') - F('luxury_sum') - F('other_sum')))['invoice_total']
+        terra_food_pumpwerk_fee = terra_invoices.filter(is_pumpwerk=True).aggregate(invoice_total=Sum((F('invoice_sum') - F('deposit_sum') - F('luxury_sum') - F('other_sum')) * ( F('fee') / 100.0), output_field=models.DecimalField()))['invoice_total']
         self.terra_food_pumpwerk_sum = terra_food_pumpwerk_sum
         self.terra_food_pumpwerk_fee = terra_food_pumpwerk_fee
         self.food_expenses_pumpwerk_sum = self.terra_food_pumpwerk_sum - self.additional_inventory_food
