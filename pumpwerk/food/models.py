@@ -220,6 +220,8 @@ class TerraInvoice(models.Model):
     def save(self, *args, **kwargs):
         if self.luxury_sum_7 or self.luxury_sum_19:
             self.luxury_sum = (self.luxury_sum_7 * Decimal(1.07)) + (self.luxury_sum_19 * Decimal(1.19))
+        else:
+            self.luxury_sum = 0
         super().save(*args, **kwargs)
 
     @property
