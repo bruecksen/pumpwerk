@@ -267,6 +267,7 @@ class Account(models.Model):
     attendance_day_sum = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Tot. days')
     previous_terra_daily_rate = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Prev. Terra rate')
     corrected_terra_daily_rate = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='New Terra rate (+Fee)')
+    account_diff = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Tot. missing terra', help_text="Total unpaid due to inaccurate terra rate.")
     
     comment = models.TextField(blank=True, null=True)
 
@@ -311,6 +312,7 @@ class Account(models.Model):
         self.terra_food_pumpwerk_fee = terra_food_pumpwerk_fee
         self.food_expenses_pumpwerk_sum = self.terra_food_pumpwerk_sum - self.additional_inventory_food
         self.corrected_terra_daily_rate = (self.food_expenses_pumpwerk_sum + self.terra_food_pumpwerk_fee) / self.attendance_day_sum
+        self.account_diff = (self.previous_terra_daily_rate - self.corrected_terra_daily_rate) * self.attendance_day_sum
 
         self.save()
 
