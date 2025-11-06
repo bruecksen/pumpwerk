@@ -28,7 +28,7 @@ class Bill(models.Model):
     total_invest = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     total_terra = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     total_luxury = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
-    transfer_sum_from_totals = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, verbose_name='Transfer sum from totals', help_text="Supermarket + Terra + Invest + Luxury")
+    transfer_sum_from_totals = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, verbose_name='Transfer sum from totals', help_text="Terra + Luxury - Usercredits")
     transfer_sum_from_userbills = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, verbose_name='Transfer sum from userbills', help_text="Sum of all userbill totals")
     daily_rate = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     account_carry_over = models.OneToOneField('Account', blank=True, null=True, on_delete=models.SET_NULL)
@@ -88,8 +88,9 @@ class Bill(models.Model):
         self.total_invest = total_invest
         self.total_luxury = total_luxury
         self.daily_rate = (self.total_supermarket + self.total_terra) / self.total_attendance_days
-        self.transfer_sum_from_totals = self.total_terra + self.total_luxury
         self.save()
+
+        sum_user_credit = 0
 
         # calculate the share per user for the invest sum, respecting the calculation rate
         invest_share = self.total_invest / user_bills.filter(expense_types__in=invest_expense_types).aggregate(user_count=Sum('calculation_factor'))['user_count']
@@ -103,6 +104,7 @@ class Bill(models.Model):
                 last_user_bill = UserBill.objects.get(user=user_bill.user, bill=self.bill_carry_over)
                 if last_user_bill.get_user_credit():
                     user_credit += last_user_bill.get_user_credit()
+            sum_user_credit += user_credit
             user_bill.credit = user_credit
             user_bill.food_sum = user_bill.calculation_factor * user_bill.attendance_days * user_bill.bill.daily_rate
             if user_bill.expense_types.filter(is_invest=True).exists():
@@ -114,9 +116,11 @@ class Bill(models.Model):
             user_bill.total = user_bill.credit + user_expense_food + user_expense_invest - user_bill.food_sum - user_bill.invest_sum - user_bill.luxury_sum
             user_bill.expense_sum = user_expense_food + user_expense_invest
             user_bill.save()
+
+        self.transfer_sum_from_totals = self.total_terra + self.total_luxury - sum_user_credit
         self.transfer_sum_from_userbills = user_bills.aggregate(total_userbills=Sum('total'))['total_userbills'] or 0
         self.overview = self.generate_bill_overview()
-        self.save(update_fields=['overview', 'transfer_sum_from_userbills'])
+        self.save(update_fields=['overview', 'transfer_sum_from_userbills', 'transfer_sum_from_totals'])
 
 
 class UserBill(models.Model):
