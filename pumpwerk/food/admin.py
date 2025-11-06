@@ -19,9 +19,9 @@ calculate_bills.short_description = "Calculate selected Bills"
 
 
 class BillAdmin(admin.ModelAdmin):
-    list_display = ('bill_date', 'days_in_month', 'terra_daily_rate', 'member_count', 'total_attendance_days', 'total_supermarket', 'total_invest', 'total_terra', 'total_luxury', 'daily_rate')
+    list_display = ('bill_date', 'days_in_month', 'terra_daily_rate', 'member_count', 'total_attendance_days', 'total_supermarket', 'total_invest', 'total_terra', 'total_luxury', 'daily_rate', 'transfer_sum_from_totals', 'transfer_sum_from_userbills')
     date_hierarchy = 'bill_date'
-    readonly_fields = ('total_attendance_days', 'total_supermarket', 'total_terra', 'total_invest', 'total_luxury', 'daily_rate', 'overview')
+    readonly_fields = ('total_attendance_days', 'total_supermarket', 'total_terra', 'total_invest', 'total_luxury', 'daily_rate', 'overview', 'transfer_sum_from_totals', 'transfer_sum_from_userbills')
     actions = [calculate_bills,]
 
     def member_count(self, obj):
