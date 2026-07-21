@@ -12,6 +12,7 @@ emails/
 whoosh_index/
 !.coveragerc
 !.gitignore
+!.python-version
 *.sublime-workspace
 *.sublime-project
 node_modules/

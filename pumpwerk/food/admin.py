@@ -9,27 +9,32 @@ from pumpwerk.food.models import Bill, UserBill, ExpenseType, Expense, Inventory
 from pumpwerk.slackbot.bot import send_message_to_channel
 
 
+@admin.action(
+    description="Calculate selected Bills"
+)
 def calculate_bills(modeladmin, request, queryset):
     for bill in queryset:
         if UserBill.objects.filter(bill=bill, attendance_days__isnull=True).exists():
             messages.error(request, "Bill {0} is missing attendance days, skip calculation.".format(bill))
             continue
         bill.make_bill_calculation()
-calculate_bills.short_description = "Calculate selected Bills"
 
 
+@admin.register(Bill)
 class BillAdmin(admin.ModelAdmin):
     list_display = ('bill_date', 'days_in_month', 'terra_daily_rate', 'member_count', 'total_attendance_days', 'total_supermarket', 'total_invest', 'total_terra', 'total_luxury', 'daily_rate', 'transfer_sum_from_totals', 'transfer_sum_from_userbills')
     date_hierarchy = 'bill_date'
     readonly_fields = ('total_attendance_days', 'total_supermarket', 'total_terra', 'total_invest', 'total_luxury', 'daily_rate', 'overview', 'transfer_sum_from_totals', 'transfer_sum_from_userbills')
     actions = [calculate_bills,]
 
+    @admin.display(
+        description="Members"
+    )
     def member_count(self, obj):
         return obj.members.count()
-    member_count.short_description = "Members"
 
-admin.site.register(Bill, BillAdmin)
 
+@admin.register(UserBill)
 class UserBillAdmin(admin.ModelAdmin):
     list_display = ('bill_date', 'user', 'total', 'attendance_days', 'credit', 'luxury_sum', 'expense_sum', 'food_sum', 'invest_sum', 'has_paid')
     date_hierarchy = 'bill__bill_date'
@@ -46,87 +51,102 @@ class UserBillAdmin(admin.ModelAdmin):
         readonly_fields = ('food_sum', 'invest_sum', 'total', 'expense_sum')
         return readonly_fields
 
+    @admin.display(
+        description="Bill date"
+    )
     def bill_date(self, obj):
         return obj.bill.bill_date
-    bill_date.short_description = "Bill date"
 
+    @admin.display(
+        description="Expense Types"
+    )
     def expense_types_list(self, obj):
         return ', '.join([e.name for e in obj.expense_types.all()])
-    expense_types_list.short_description = "Expense Types"
-
-admin.site.register(UserBill, UserBillAdmin)
 
 
+
+@admin.register(ExpenseType)
 class ExpenseTypeAdmin(admin.ModelAdmin):
         list_display = ('name', 'is_invest')
 
-admin.site.register(ExpenseType, ExpenseTypeAdmin)
 
 
+@admin.register(Expense)
 class ExpenseAdmin(admin.ModelAdmin):
         list_display = ('bill_date', 'user', 'expense_type', 'amount', 'comment')
 
+        @admin.display(
+            description="User"
+        )
         def user(self, obj):
             return obj.user_bill.user
-        user.short_description = "User"
 
+        @admin.display(
+            description="Bill date"
+        )
         def bill_date(self, obj):
             return obj.user_bill.bill.bill_date
-        bill_date.short_description = "Bill date"
-
-admin.site.register(Expense, ExpenseAdmin)
 
 
+
+@admin.register(Inventory)
 class InventoryAdmin(admin.ModelAdmin):
     date_hierarchy = 'inventory_date'
     list_display = ('inventory_date', 'sum_inventory', 'sum_cash', 'sum_luxury')
 
-admin.site.register(Inventory, InventoryAdmin)
 
 
+@admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
     date_hierarchy = 'payment_date'
     list_display = ('title', 'payment_date', 'payment_sum',)
 
-admin.site.register(Payment, PaymentAdmin)
 
 
+@admin.action(
+    description="Calculate selected Accounts"
+)
 def calculate_account(modeladmin, request, queryset):
     for account in queryset:
         account.calculate()
-calculate_account.short_description = "Calculate selected Accounts"
 
+@admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
     list_display = ('title', 'inventory_date', 'terra_brutto_all_sum', 'food_expenses_pumpwerk_sum', 'terra_food_pumpwerk_fee', 'user_bill_luxury_sum', 'luxury_consumed', 'luxury_paid_diff', 'terra_deposit_sum', 'attendance_day_sum', 'previous_terra_daily_rate', 'corrected_terra_daily_rate', 'account_diff')
     readonly_fields = ['additional_inventory_food', 'additional_inventory_luxury', 'terra_luxury_sum', 'luxury_consumed', 'luxury_paid_diff', 'terra_brutto_all_sum', 'terra_food_others_sum', 'terra_food_pumpwerk_fee', 'terra_brutto_others_sum', 'terra_deposit_sum', 'terra_food_pumpwerk_sum', 'food_expenses_pumpwerk_sum', 'attendance_day_sum', 'corrected_terra_daily_rate', 'account_diff']
     actions = [calculate_account]
 
+    @admin.display(
+        description="Date"
+    )
     def inventory_date(self, obj):
         return obj.inventory and obj.inventory.inventory_date
-    inventory_date.short_description = "Date"
-
-admin.site.register(Account, AccountAdmin)
 
 
+
+@admin.register(TerraInvoice)
 class TerraInvoiceAdmin(admin.ModelAdmin):
     list_display = ('terra_invoice_date', 'invoice_number', 'invoice_sum', 'invoice_sum_plus_fee', 'deposit_sum', 'food_sum', 'luxury_sum', 'other_sum', 'is_pumpwerk', 'fee', 'is_paid')
     readonly_fields = ['luxury_sum']
     # list_filter = ('year', )
 
+    @admin.display(
+        description="Food sum (inv. - dep.)"
+    )
     def food_sum(self, obj):
         return obj.invoice_sum - obj.deposit_sum
-    food_sum.short_description = "Food sum (inv. - dep.)"
 
+    @admin.display(
+        description="Is paid?",
+        boolean=True,
+    )
     def is_paid(self, obj):
         return obj.payment_set.exists()
-    is_paid.short_description = "Is paid?"
-    is_paid.boolean = True
-admin.site.register(TerraInvoice, TerraInvoiceAdmin)
 
 
+@admin.register(UserPayback)
 class UserPaybackAdmin(admin.ModelAdmin):
     list_display = ('account', 'user', 'total_days', 'total', 'total_luxury_sum', 'has_paid')
     readonly_fields = ['user', 'account', 'total_days', 'total', 'has_paid', 'total_luxury_sum']
     list_filter = ('account',)
 
-admin.site.register(UserPayback, UserPaybackAdmin)

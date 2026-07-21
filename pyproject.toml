@@ -1,0 +1,28 @@
+[project]
+name = "pumpwerk"
+version = "0.1.0"
+description = "Pumpwerk food billing and Slack bot"
+requires-python = ">=3.12"
+dependencies = [
+    # Django
+    "django>=5.2,<5.3",                # https://www.djangoproject.com/
+    "django-environ>=0.12",            # https://github.com/joke2k/django-environ
+    "argon2-cffi>=23.1.0",             # https://github.com/hynek/argon2_cffi
+    "django-solo>=2.4.0",              # https://github.com/lazybird/django-solo
+    "slack-sdk>=3.33",                 # https://github.com/slackapi/python-slack-sdk
+    "psycopg[binary]>=3.2",            # https://github.com/psycopg/psycopg
+]
+
+[dependency-groups]
+dev = [
+    "django-debug-toolbar>=5.0",       # https://github.com/jazzband/django-debug-toolbar
+    "django-extensions>=4.0",          # https://github.com/django-extensions/django-extensions
+]
+production = [
+    "gunicorn>=23.0",                  # https://github.com/benoitc/gunicorn
+    "sentry-sdk>=2.0",                 # https://github.com/getsentry/sentry-python
+]
+
+[tool.uv]
+package = false
+default-groups = ["dev"]

@@ -1,11 +1,11 @@
 from django.conf import settings
 from django.template.defaultfilters import date
 
-import slack
+from slack_sdk import WebClient
 
 
 def get_slack_client():
-    return slack.WebClient(token=settings.SLACK_API_TOKEN)
+    return WebClient(token=settings.SLACK_API_TOKEN)
 
 
 def generate_bill_result_blocks(bill):

@@ -5,11 +5,11 @@ from solo.admin import SingletonModelAdmin
 
 from pumpwerk.core.models import User, Setting
 
+@admin.register(User)
 class CustomUserAdmin(UserAdmin):
     list_display = UserAdmin.list_display + ('calculation_factor',)
     fieldsets = UserAdmin.fieldsets + (('Calculation', {'fields': ('calculation_factor',)}),)
 
 
-admin.site.register(User, CustomUserAdmin)
 
 admin.site.register(Setting, SingletonModelAdmin)
